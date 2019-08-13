@@ -1,0 +1,9 @@
+ CreateAuthHeader←{
+     HTTPMethod←'GET'⍝ \n
+     CanonicalURI←'https://s3.amazonaws.com'  ⍝\n
+     CanonicalQueryString←''⍝\n
+     CanonicalHeaders← ⍝\n
+     <SignedHeaders>\n
+     <HashedPayload>
+
+ }

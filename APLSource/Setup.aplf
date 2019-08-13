@@ -1,0 +1,6 @@
+ Setup
+
+ 'DCT'⎕NS''
+ :With DCT
+     ⎕CY'C:\GitHub\CarlisleGroup\AWS_S3\Assets\DCL\dyacrypt.dws'
+ :EndWith

@@ -1,0 +1,6 @@
+ fixNL←{
+     v←⍵
+     b←v=⎕UCS 10
+     (b/v)←⎕UCS 13
+     v
+ }

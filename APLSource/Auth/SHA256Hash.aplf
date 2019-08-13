@@ -1,0 +1,5 @@
+ SHA256Hash←{
+     _←#.DCL.Crypt.Init #.DCL.AcreConfig.ProjectFolder,'Assets/DCL/'
+     h←#.DCL.Crypt.HASH_SHA256 #.DCL.Crypt.Hash ⍵
+     ∊ToHex 83 ⎕DR h
+ }

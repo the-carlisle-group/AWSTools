@@ -1,0 +1,2 @@
+ Z←NewLine
+ Z←⎕UCS 10

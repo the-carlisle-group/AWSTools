@@ -1,0 +1,19 @@
+ result←{encodeSlash}UriEncode input;ch;simple
+
+ :If 0=⎕NC'encodeSlash'
+     encodeSlash←0
+ :EndIf
+
+ simple←'_-.',⎕A,⎕D,Lowercase ⎕A
+ result←''
+
+ :For ch :In input
+     :If ch∊simple
+         result,←ch
+     :ElseIf ch='/'
+         result,←encodeSlash⊃'/' '%2F'
+     :Else
+         result,←Uppercase∊'%',¨ToHex'UTF-8'⎕UCS ch
+     :EndIf
+
+ :EndFor

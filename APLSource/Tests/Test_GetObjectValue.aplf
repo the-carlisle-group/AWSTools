@@ -1,0 +1,124 @@
+ Test_GetObjectValue←{
+     secretKey←'oxd7aBcHnkXUp087R88KwChWTM2cut9QmGo1z+Su'
+     accessKey←'AKIAWCDZTPPXYMY6F34N'
+
+     getHMAC←##.Auth.HMAC_SHA256
+     getHash←##.Auth.SHA256Hash
+
+     unsigned←0
+     payload←''
+     payloadHash←unsigned{1=⍺:'UNSIGNED-PAYLOAD' ⋄ getHash ⍵}payload
+
+     c r←##.NewClient''
+     c.Host←'denmark2019.s3.amazonaws.com'
+     r.URI←'/?list-type=2'
+
+     ds←##.Auth.GetTimeStamp''
+     year←8↑ds
+     region←'us-east-1'
+     service←'s3'
+
+     headersNames←(819⌶)¨'host' 'x-amz-content-sha256' 'x-amz-date'
+     headersValues←headersNames ##.getConicalHeaders¨c.Host payloadHash ds
+
+     cr←'GET',##.NewLine
+     cr,←'/',##.NewLine
+     cr,←(##.Auth.UriEncode'list-type'),'=',##.Auth.UriEncode'2'
+     cr,←##.NewLine
+     cr,←∊headersValues
+     cr,←##.NewLine
+     cr,←(¯1↓∊headersNames,¨';'),##.NewLine
+     cr,←payloadHash
+     crHash←getHash cr
+
+     ss←'AWS4-HMAC-SHA256',##.NewLine
+     ss,←ds,##.NewLine
+     ss,←year,'/',region,'/',service,'/aws4_request',##.NewLine
+     ss,←crHash
+
+     signingKey←##.Auth.GetSignatureKey secretKey year region service
+     requestSignature←∊##.Auth.ToHex signingKey ##.Auth.HMAC_SHA256 ss
+
+     authHeader←'AWS4-HMAC-SHA256 '
+     authHeader,←'Credential=',accessKey
+     authHeader,←,'/',year
+     authHeader,←'/',region
+     authHeader,←'/',service
+     authHeader,←'/aws4_request, '
+     authHeader,←'SignedHeaders=',(¯1↓∊headersNames,¨';'),', '
+     authHeader,←'Signature=',requestSignature
+
+     r.Headers←⍬
+     r.Headers,←⊂'Accept' 'application/xml'
+     r.Headers,←⊂'Accept-Encoding' 'gzip'
+     r.Headers,←⊂'Authorization'authHeader
+     r.Headers,←⊂'x-amz-content-sha256'payloadHash
+     r.Headers,←⊂'x-amz-date'ds
+
+     res←c #.CarlisleGroup.Rumba.Core.SendAndReceive r
+     200≠res.StatusCode:'Error getting list'
+     xml←(⎕XML⍠('Whitespace' 'Preserve'))res.Content
+
+     objects←(xml[;0]=2)⊆↓xml
+     obNS←{
+         o←⎕NS''
+         o.(Key LastModified ETag Size StorageClass)←(⊃⍵)[;2]
+         o
+     }¨objects
+
+     ob←0⊃obNS
+
+⍝⍝⍝ get single object
+
+     c r←##.NewClient''
+     c.Host←'denmark2019.s3.amazonaws.com'
+     r.URI←'/',ob.Key
+
+     ds←##.Auth.GetTimeStamp''
+     year←8↑ds
+     region←'us-east-1'
+     service←'s3'
+
+     headersNames←(819⌶)¨'host' 'x-amz-content-sha256' 'x-amz-date'
+     headersValues←headersNames ##.getConicalHeaders¨c.Host payloadHash ds
+
+     cr←'GET',##.NewLine
+     cr,←r.URI,##.NewLine
+     cr,←##.NewLine
+     cr,←∊headersValues
+     cr,←##.NewLine
+     cr,←(¯1↓∊headersNames,¨';'),##.NewLine
+     cr,←payloadHash
+     crHash←getHash cr
+
+     ss←'AWS4-HMAC-SHA256',##.NewLine
+     ss,←ds,##.NewLine
+     ss,←year,'/',region,'/',service,'/aws4_request',##.NewLine
+     ss,←crHash
+
+     signingKey←##.Auth.GetSignatureKey secretKey year region service
+     requestSignature←∊##.Auth.ToHex signingKey ##.Auth.HMAC_SHA256 ss
+
+     authHeader←'AWS4-HMAC-SHA256 '
+     authHeader,←'Credential=',accessKey
+     authHeader,←,'/',year
+     authHeader,←'/',region
+     authHeader,←'/',service
+     authHeader,←'/aws4_request, '
+     authHeader,←'SignedHeaders=',(¯1↓∊headersNames,¨';'),', '
+     authHeader,←'Signature=',requestSignature
+
+     r.Headers←⍬
+     r.Headers,←⊂'Accept' 'application/xml'
+     r.Headers,←⊂'Accept-Encoding' 'gzip'
+     r.Headers,←⊂'Authorization'authHeader
+     r.Headers,←⊂'x-amz-content-sha256'payloadHash
+     r.Headers,←⊂'x-amz-date'ds
+
+     res←c #.CarlisleGroup.Rumba.Core.SendAndReceive r
+     200≠res.StatusCode:'Error getting file'
+     ⎕←'Content-Type: ',res.ContentType.ContentType
+     0≠≢res.Content:'OK'
+
+     'Error'
+ }

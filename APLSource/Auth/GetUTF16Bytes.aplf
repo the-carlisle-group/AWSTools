@@ -1,0 +1,3 @@
+ GetUTF16Bytes←{
+     ¯2↓83 ⎕DR'UTF-16'⎕UCS ⍵,'⎕'
+ }

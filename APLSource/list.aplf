@@ -1,0 +1,17 @@
+ list←{
+     bn←'ryft-public-sample-data' ⍝'denmark2019' ⍝'BucketName'
+     ds←⍕1000 100 100⊥3↑⎕TS
+     ts←
+     rumba←#.CarlisleGroup.Rumba.Core
+     c←rumba.NewClient 0
+     c.Host←bn,'.s3.amazonaws.com'
+     c.Port←443
+     c.Secure←1
+     c.X509←⎕NEW rumba.##.Conga.X509Cert
+     req←rumba.NewRequest''
+     req.URI←'?list-type=2'
+     req.Headers←('Accept' 'application/json')('Date'ds)
+     req.Compress←1
+     res←c rumba.SendAndReceive req
+     res.StatusCode
+ }

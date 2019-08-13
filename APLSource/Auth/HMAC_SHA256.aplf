@@ -1,0 +1,5 @@
+ HMAC_SHA256←{
+     _←#.DCL.Crypt.Init #.DCL.AcreConfig.ProjectFolder,'Assets/DCL/'
+     h←#.DCL.Crypt.HMAC_SHA256 ⍺ #.DCL.Crypt.Hash ⍵
+     83 ⎕DR h
+ }

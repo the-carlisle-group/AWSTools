@@ -1,0 +1,56 @@
+ Test_get_vanilla←{
+
+
+     nl←⎕UCS 10  ⍝ if 13 the hashes dont match amazon test cases
+
+     secretKey←'wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY'
+     accessKey←'AKIDEXAMPLE'
+
+     getHMAC←{∊##.Auth.ToHex ⍺ ##.Auth.HMAC_SHA256 ⍵}
+     getHash←{∊##.Auth.(ToHex SHA256Hash)⍵}
+
+     unsigned←0
+     payload←''
+     payloadHash←unsigned{1=⍺:'UNSIGNED-PAYLOAD' ⋄ getHash ⍵}payload
+
+     ds←'20150830T123600Z'
+     year←8↑ds
+     region←'us-east-1'
+     service←'service'
+
+     head←⍬
+     head,←⊆'host:example.amazonaws.com'
+     head,←⊆'x-amz-date:',ds
+
+     cr←'GET',nl
+     cr,←'/',nl
+     cr,←nl
+     cr,←∊head,¨⊂nl
+     cr,←nl
+     cr,←'host;x-amz-date',nl
+     cr,←payloadHash
+     crHash←getHash cr
+
+     ss←'AWS4-HMAC-SHA256',nl
+     ss,←ds,nl
+     ss,←year,'/',region,'/',service,'/aws4_request',nl
+     ss,←crHash
+
+     dateKey←('AWS4',secretKey)getHMAC year
+     dateRegionKey←dateKey getHMAC region
+     dateRegionServiceKey←dateRegionKey getHMAC service
+     signingKey←dateRegionKey getHMAC'aws4_request'
+
+     requestSignature←secretKey getHMAC ss
+
+     authHeader←'AWS4-HMAC-SHA256 '
+     authHeader,←'Credential=',accessKey
+     authHeader,←,'/',year
+     authHeader,←'/',region
+     authHeader,←'/',service
+     authHeader,←'/aws4_request, '
+     authHeader,←'SignedHeaders=host;x-amz-date, '
+     authHeader,←'Signature=',requestSignature
+
+
+ }

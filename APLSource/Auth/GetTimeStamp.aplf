@@ -1,0 +1,7 @@
+ GetTimeStamp←{
+
+     ⍝ Windows
+     ⎕USING←,⊂'System'
+     DateTime.Now.ToUniversalTime.ToString⊆('yyyyMMddTHHmmssZ') ⍝##.Auth.GetTimeStamp''
+
+ }
