@@ -1,0 +1,7 @@
+ GetBucketCollection←{
+
+     c←##.##.Client.New
+     s←##.##.S3.Service.New c
+     b←s.GetBuckets
+     0
+ }

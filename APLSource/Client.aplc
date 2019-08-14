@@ -1,0 +1,336 @@
+:Class Client
+
+    :include Utils
+
+    :field public ReadOnly RequiredHeaders←'Host' 'x-amz-content-sha256' 'x-amz-date'
+
+    :field private secretKey
+    :Property SecretKey
+    :access public instance
+
+        ∇ r←get
+          r←secretKey
+        ∇
+
+        ∇ set v
+          secretKey←v.NewValue
+        ∇
+    :EndProperty
+
+    :field private accessKey
+    :Property AccessKey
+    :access public instance
+        ∇ r←get
+          r←accessKey
+        ∇
+
+        ∇ set v
+          accessKey←v.NewValue
+        ∇
+    :EndProperty
+
+    :field private httpMethod←'GET'
+    :property HTTPMethod
+    :access public instance
+        ∇ r←get
+          r←httpMethod
+        ∇
+
+        ∇ set v
+          httpMethod←v.NewValue
+        ∇
+
+    :endproperty
+    :field private timeStamp
+    :property TimeStamp
+    :Access public instance
+        ∇ r←get
+          r←timeStamp
+        ∇
+
+    :endproperty
+
+    :property Date
+    :access public instance
+        ∇ r←get
+          r←8↑TimeStamp
+        ∇
+    :endproperty
+
+    :field private    host←''
+    :property Host
+    :access public instance
+
+        ∇ r←get
+          r←host
+        ∇
+
+        ∇ set v
+          host←v.NewValue
+        ∇
+
+    :endproperty
+
+    :field private    domain←''
+    :property Domain
+    :access public instance
+
+        ∇ r←get
+          r←domain
+        ∇
+
+        ∇ set v
+          domain←v.NewValue
+        ∇
+
+    :endproperty
+
+
+    :field private uri←'/'
+    :property URI
+    :access public instance
+        ∇ r←get
+          r←uri
+        ∇
+
+        ∇ set v
+          uri←v.NewValue
+        ∇
+    :endproperty
+
+    :field private region←'us-east-1'
+    :property Region
+    :access public instance
+        ∇ r←get
+          r←region
+        ∇
+
+        ∇ set v
+          region←v.NewValue
+        ∇
+    :endproperty
+
+    :field private service←'s3'
+    :property Service
+    :access public instance
+        ∇ r←get
+          r←service
+        ∇
+
+        ∇ set v
+          service←v.NewValue
+        ∇
+    :endproperty
+
+    :field private headers←⍬
+
+
+    :property Headers
+    :access public instance
+        ∇ r←get;hh;h
+          r←headers
+        ∇
+
+        ∇ set v
+          headers←v.NewValue
+        ∇
+    :endproperty
+
+    :property HeaderNames
+    :access public instance
+        ∇ r←get;hh;h
+          r←RequiredHeaders[⍋RequiredHeaders]
+        ∇
+
+    :endproperty
+
+    :property HeadersConical
+    :access public instance
+        ∇ r←get;hh;h;th
+         
+          hh←⍬
+         
+          :For h :In (819⌶)¨RequiredHeaders
+              :Select h
+              :Case 'host'
+                  th←''
+                  :If 0≠≢Domain
+                      th←Domain,'.'
+                  :EndIf
+                  hh,←⊂h,':',th,Host
+              :Case 'x-amz-content-sha256'
+                  hh,←⊂h,':',Hash_SHA256 Body
+              :Case 'x-amz-date'
+                  hh,←⊂h,':',TimeStamp
+         
+              :EndSelect
+         
+          :EndFor
+         
+          hh←hh[⍋hh]        ⍝ order alpha
+          r←∊hh,¨NewLine
+        ∇
+
+    :endproperty
+
+    :field body←''
+    :property Body
+    :access public instance
+
+        ∇ r←get
+          r←body
+        ∇
+
+        ∇ set v
+          body←v.NewValue
+        ∇
+
+    :endproperty
+
+    :field private queryParams            ←⍬
+    :property QueryParams
+    :access public instance
+        ∇ r←get
+          r←queryParams
+        ∇
+
+        ∇ set v
+          queryParams←v.NewValue
+        ∇
+    :endproperty
+
+    ∇ Z←New
+      :Access public shared
+      Z←⎕NEW ⎕THIS
+    ∇
+
+    ∇ const0
+      :Access public
+      :Implements constructor
+     
+      timeStamp←GetTimeStamp
+      SetDefaultKeys ##.##.AcreConfig.ProjectFolder
+      rumba←#.CarlisleGroup.Rumba.Core
+    ∇
+
+    ∇ Reset
+      :Access public instance
+      host←
+    ∇
+
+      SetDefaultKeys←{
+          p←⍵
+          0=⎕NEXISTS ⍵:_←0
+          fp←⍵,'defaultKeys.csv'
+          0=⎕NEXISTS fp:_←0
+          keys←0⊃⎕CSV fp'UTF-8'⍬ 1
+          0=≢keys:_←0
+          ⎕THIS.(accessKey secretKey)←keys[0;]
+      }
+
+
+    ∇ Z←ConstructConicalRequest;cr;qp;q;ct
+      :Access public instance
+     
+      cr←HTTPMethod,NewLine
+      cr,←URI
+      cr,←NewLine
+     
+      :If 0≠≢QueryParams
+          qp←⍬
+          :For q :In QueryParams
+              qp,←⊂(UriEncode 0⊃q),'=',(UriEncode 1⊃q)
+          :EndFor
+          qp←qp[⍋qp]  ⍝ must sort alpa post encode
+          cr,←¯1↓∊qp,¨'&'
+      :EndIf
+     
+      cr,←NewLine
+      cr,←∊HeadersConical
+      cr,←NewLine
+      cr,←(getHeaderNameString HeaderNames),NewLine
+      cr,←Hash_SHA256 Body
+      Z←cr
+    ∇
+
+    ∇ Z←ConstructStringToSign;ss
+      :Access public instance
+      ss←'AWS4-HMAC-SHA256',NewLine
+      ss,←TimeStamp,NewLine
+      ss,←Date,'/',Region,'/',Service,'/aws4_request',NewLine
+      ss,←Hash_SHA256 ConstructConicalRequest
+      Z←ss
+    ∇
+
+
+    ∇ Z←ConstructSignatureKey;dateKey;dateRegionKey;dateRegionServiceKey;signingKey
+      :Access public instance
+      dateKey←('AWS4',SecretKey)HMAC_SHA256 Date
+      dateRegionKey←(80 ⎕DR dateKey)HMAC_SHA256 Region
+      dateRegionServiceKey←(80 ⎕DR dateRegionKey)HMAC_SHA256 Service
+      signingKey←(80 ⎕DR dateRegionServiceKey)HMAC_SHA256'aws4_request'
+      Z←80 ⎕DR signingKey
+    ∇
+
+    ∇ Z←ConstructAuthorizationHeader;sigKey;reqSig;ss;authHeader
+      :Access public instance
+      ss←ConstructStringToSign
+      sigKey←ConstructSignatureKey
+      reqSig←∊ToHex sigKey HMAC_SHA256 ss
+     
+      authHeader←'AWS4-HMAC-SHA256 '
+      authHeader,←'Credential=',AccessKey
+      authHeader,←,'/',Date
+      authHeader,←'/',Region
+      authHeader,←'/',Service
+      authHeader,←'/aws4_request, '
+      authHeader,←'SignedHeaders=',(getHeaderNameString HeaderNames),', '
+      authHeader,←'Signature=',reqSig
+      Z←authHeader
+    ∇
+      getHeaderNameString←{
+          h←(819⌶)¨⍵
+          (¯1↓∊h,¨';')
+      }
+
+    ∇ Z←SendRequest;h;c;r;res;xml
+      :Access public instance
+      h←⍬
+      h,←⊂'Accept-Encoding' 'gzip'
+      h,←⊂'Authorization'ConstructAuthorizationHeader
+      h,←⊂'x-amz-content-sha256'(Hash_SHA256 Body)
+      h,←⊂'x-amz-date'TimeStamp
+     
+      rumba.##.Conga.X509Cert.LDRC←rumba.##.Conga
+      c←rumba.NewClient''
+     
+      c.Host←''
+      :If 0≠≢Domain
+          c.Host←Domain,'.'
+      :EndIf
+      c.Host,←Host
+      c.Secure←1
+      c.Port←443
+      c.X509←⎕NEW rumba.##.Conga.X509Cert
+      r←rumba.NewRequest''
+     
+      r.Method←HTTPMethod
+      r.URI←URI
+     
+      :If 0≠≢QueryParams
+          r.URI,←'?',¯1↓∊({(UriEncode 0⊃⍵),'=',UriEncode 1⊃⍵}¨QueryParams),¨'&'
+      :EndIf
+     
+      r.Content←Body
+      r.Headers←h
+      res←c rumba.SendAndReceive r
+     
+      :If res.StatusCode≠200
+          SignalError res
+      :EndIf
+     
+      Z←res
+    ∇
+
+
+:EndClass

@@ -1,0 +1,11 @@
+ Z←GetTimeStamp;ts;d;m;y;i;months
+ months←'Jan' 'Feb' 'Mar' 'Apr' 'May' 'Jun' 'Jul' 'Aug' 'Sep' 'Oct' 'Nov' 'Dec'
+ ts←5↓1⊃#.CarlisleGroup.Rumba.DRC.GetProp'.' 'HttpDate'
+ d←(i←ts⍳' ')↑ts
+ Z←ts[7 8 9 10]
+ Z,←,'ZI2'⎕FMT 1+months⍳⊂ts[3 4 5]
+ Z,←ts[0 1]
+ Z,←'T'
+ Z,←':'~⍨8↑12↓ts
+ Z,←'Z'
+⍝ '20130524T000000Z'

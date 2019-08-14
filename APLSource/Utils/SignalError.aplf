@@ -1,0 +1,7 @@
+ SignalError←{
+     xml←(⎕XML⍠('Whitespace' 'Preserve'))⍵.Content
+     em←↑xml[⍸xml[;1]∊⊂'Code';2]
+     msg←↑xml[⍸xml[;1]∊⊂'Message';2]
+     ⎕SIGNAL⊂('EN'res.StatusCode)('EM'em)('Message'msg)
+
+ }

@@ -1,0 +1,10 @@
+ GetObject←{
+
+     c←##.##.Client.New
+     s←##.##.S3.Service.New c
+     b←0⊃s.GetBuckets
+     ob←0⊃b.GetObjects'' 1
+     _←ob.GetMetaData
+     _←ob.GetValue
+     0
+ }

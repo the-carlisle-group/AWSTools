@@ -1,9 +1,0 @@
- GetSignatureKey←{
-     secretKey dateStamp regionName serviceName←⍵
-
-     dateKey←('AWS4',secretKey)HMAC_SHA256 dateStamp
-     dateRegionKey←(80 ⎕DR dateKey)HMAC_SHA256 regionName
-     dateRegionServiceKey←(80 ⎕DR dateRegionKey)HMAC_SHA256 serviceName
-     signingKey←(80 ⎕DR dateRegionServiceKey)HMAC_SHA256'aws4_request'
-     80 ⎕DR signingKey
- }

@@ -1,0 +1,233 @@
+:Class Object
+
+    :include ##.Utils
+
+    :field private service
+    :field private name←''
+    :field private creationDate←''
+    :field private client
+    :field private bucket
+
+    :field private   key
+    :field private   lastModified
+    :field private   eTag
+    :field private   size
+    :field private   storageClass
+    :field private ownerID
+    :field private ownerDisplayName
+    :field private isRetreived←0
+    :field private value  ←⍬
+    :field private contentType←''
+    :field private contentLength←0
+    :field private lastRetreived←⍬
+
+    :property  IsRetreived
+    :access public
+
+        ∇ r←get
+          r←isRetreived
+        ∇
+
+    :endproperty
+
+    :property  LastRetreived
+    :access public
+
+        ∇ r←get
+          r←lastRetreived
+        ∇
+
+    :endproperty
+
+    :property  Value
+    :access public
+
+        ∇ r←get
+          r←value
+        ∇
+
+        ∇ set v
+          value←v.NewValue
+        ∇
+
+    :endproperty
+
+    :property  ContentType
+    :access public
+
+        ∇ r←get
+          r←contentType
+        ∇
+
+        ∇ set v
+          contentType←v.NewValue
+        ∇
+
+    :endproperty
+
+
+    :property  ContentLength
+    :access public
+
+        ∇ r←get
+          r←contentLength
+        ∇
+
+        ∇ set v
+          contentLength←v.NewValue
+        ∇
+
+    :endproperty
+
+    :property  OwnerID
+    :access public
+
+        ∇ r←get
+          r←ownerID
+        ∇
+
+        ∇ set v
+          ownerID←v.NewValue
+        ∇
+
+    :endproperty
+
+
+    :property  OwnerDisplayName
+    :access public
+
+        ∇ r←get
+          r←ownerDisplayName
+        ∇
+
+        ∇ set v
+          ownerDisplayName←v.NewValue
+        ∇
+
+    :endproperty
+
+    :property   Key
+    :access public
+
+        ∇ r←get
+          r←key
+        ∇
+
+        ∇ set v
+          key←v.NewValue
+          client.URI←'/',Key
+        ∇
+
+    :endproperty
+
+    :property   LastModified
+    :access public
+
+        ∇ r←get
+          r←lastModified
+        ∇
+
+        ∇ set v
+          lastModified←v.NewValue
+        ∇
+
+    :endproperty
+
+    :property   ETag
+    :access public
+
+        ∇ r←get
+          r←eTag
+        ∇
+
+        ∇ set v
+          eTag←v.NewValue
+        ∇
+
+    :endproperty
+
+    :property   Size
+    :access public
+
+        ∇ r←get
+          r←size
+        ∇
+
+        ∇ set v
+          size←v.NewValue
+        ∇
+
+    :endproperty
+
+    :property   StorageClass
+    :access public
+
+        ∇ r←get
+          r←storageClass
+        ∇
+
+        ∇ set v
+          storageClass←v.NewValue
+        ∇
+
+    :endproperty
+
+
+    ∇ Z←New s
+      :Access public shared
+      Z←⎕NEW ⎕THIS s
+    ∇
+
+    ∇ const0 s
+      :Access public
+      :Implements constructor
+      bucket←s
+      client←CloneClient bucket.Client
+      client.Host←'s3.amazonaws.com'
+      client.Domain←bucket.Name
+    ∇
+
+    ∇ Z←GetValue;res
+      :Access public instance
+      ⍝ Z   : 0 if no value
+     
+      :If 0=≢Key
+          ⎕SIGNAL⊂('EN' 6)('EM' 'Key property is empty.')('Message' 'Key must be a valid object on S3.')
+      :EndIf
+     
+      client.HTTPMethod←'GET'
+      res←client.SendRequest
+     
+      contentType←res.ContentType.ContentType
+      contentLength←res.ContentLength
+     
+      isRetreived←1
+      value←res.Content
+      lastRetreived←⎕TS
+      Z←0=≢value
+    ∇
+
+
+    ∇ Z←GetMetaData;res
+      :Access public instance
+      ⍝ Z   : 0 if no value
+     
+      :If 0=≢Key
+          ⎕SIGNAL⊂('EN' 6)('EM' 'Key property is empty.')('Message' 'Key must be a valid object on S3.')
+      :EndIf
+     
+      client.HTTPMethod←'HEAD'
+      res←client.SendRequest
+     
+      contentType←res.ContentType.ContentType
+      contentLength←res.ContentLength
+     
+      isRetreived←0
+      value←⍬
+      lastRetreived←⍬
+     
+      Z←0
+    ∇
+
+
+:EndClass

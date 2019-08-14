@@ -1,0 +1,173 @@
+:Class Bucket
+
+    :include ##.Utils
+
+    :field private service
+    :field private name←''
+    :field private creationDate←''
+    :field private isTruncated ←0
+    :field private contToken←''
+    :field private nextContinuationToken←''
+    :field private client
+
+    :property Client
+    :access public instance
+        ∇ r←get
+          r←client
+        ∇
+    :Endproperty
+
+
+    :property IsTruncated
+    :access public instance
+        ∇ r←get
+          r←isTruncated
+        ∇
+    :Endproperty
+
+    :property ContinuationToken
+    :access public instance
+        ∇ r←get
+          r←contToken
+        ∇
+    :Endproperty
+
+
+    :property NextContinuationToken
+    :access public instance
+        ∇ r←get
+          r←nextContinuationToken
+        ∇
+    :Endproperty
+
+
+
+    :property Name
+    :access public instance
+        ∇ r←get
+          r←name
+        ∇
+        ∇ set v
+          name←v.NewValue
+        ∇
+    :endproperty
+
+    :property CreationDate
+    :access public instance
+        ∇ r←get
+          r←creationDate
+        ∇
+        ∇ set v
+          creationDate←v.NewValue
+        ∇
+    :endproperty
+
+    ∇ Z←New s
+      :Access public shared
+      Z←⎕NEW ⎕THIS s
+    ∇
+
+    ∇ const0 s
+      :Access public
+      :Implements constructor
+      service←s
+      client←CloneClient service.Client
+    ∇
+
+    ∇ Z←GetObjects(startAfterId maxKeys);res;xml;bc;b;tb;params;pi
+      :Access public instance
+     
+      isTruncated←0
+      contToken←''
+      nextContinuationToken←''
+     
+      params←⍬
+     
+      :If 0≠≢startAfterId
+          params,←⊂'start-after'startAfterId
+      :EndIf
+     
+      :If 0≠maxKeys
+          params,←⊂'max-keys'(⍕maxKeys)
+      :EndIf
+     
+      xml←getObjects params
+     
+      isTruncated←'true'≡2⊃xml[xml[;1]⍳⊂'IsTruncated';]
+      :If IsTruncated
+          nextContinuationToken←2⊃xml[xml[;1]⍳⊂'NextContinuationToken';]
+      :EndIf
+     
+      Z←⍬
+     
+      →(0=⍎2⊃xml[(xml[;1]⍳⊂'KeyCount');])/0
+     
+      xml←((xml[;1]∊⊂'Contents')⍳1)↓xml
+      bc←(~(xml[;1]∊⊂'Contents'))⊆↓xml[;1 2]
+     
+      pi←'Key' 'LastModified' 'ETag' 'Size' 'StorageClass' 'ID' 'DisplayName'
+      pi←(0⊃¨0⊃bc)⍳pi
+     
+      :For b :In bc
+          tb←##.##.Object.New ⎕THIS
+          tb.(Key LastModified ETag Size StorageClass OwnerID OwnerDisplayName)←1⊃¨b[pi]
+          Z,←tb
+      :EndFor
+     
+    ∇
+
+    ∇ Z←GetAllObjects;res;xml;bc;b;tb;cont;params
+      :Access public instance
+     
+      isTruncated←0
+      contToken←''
+      nextContinuationToken←''
+      cont←1
+     
+      Z←⍬
+     
+      :While cont
+     
+          :If 0=≢NextContinuationToken
+              xml←getObjects''
+          :Else
+              params←⊂'continuation-token'NextContinuationToken
+              xml←getObjects params
+          :EndIf
+     
+          isTruncated←'true'≡2⊃xml[xml[;1]⍳⊂'IsTruncated';]
+          :If IsTruncated
+              nextContinuationToken←2⊃xml[xml[;1]⍳⊂'NextContinuationToken';]
+          :EndIf
+     
+          bc←(xml[;0]=2)⊆↓xml
+     
+          :For b :In bc
+              tb←##.##.Object.New ⎕THIS
+              tb.(Key LastModified ETag Size StorageClass)←2⊃¨b
+              Z,←tb
+          :EndFor
+     
+          cont←isTruncated
+     
+      :EndWhile
+     
+    ∇
+
+    ∇ Z←getObjects params;res
+      :Access private
+      client.Host←'s3.amazonaws.com'
+      client.Domain←Name
+      client.URI←'/'
+      client.QueryParams←('list-type' '2')('fetch-owner' 'true')
+      :If 0≢params
+          client.QueryParams,←params
+      :EndIf
+      client.QueryParams←client.QueryParams[⍋0⊃¨client.QueryParams]
+     
+      res←client.SendRequest
+      CheckContentTypeXML res
+      Z←⎕XML res.Content
+    ∇
+
+:EndClass

@@ -1,0 +1,4 @@
+ Hash_SHA256←{
+     h←#.DCL.Crypt.HASH_SHA256 #.DCL.Crypt.Hash ⍵
+     ∊ToHex 83 ⎕DR h
+ }

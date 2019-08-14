@@ -1,0 +1,5 @@
+ CloneClient←{
+     c←(↑↑⎕CLASS ⍵).New
+     c.(AccessKey SecretKey)←⍵.(AccessKey SecretKey)
+     c
+ }

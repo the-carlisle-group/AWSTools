@@ -1,0 +1,41 @@
+:Class Service
+    :include ##.Utils
+    :field private client
+
+    :property Client
+    :access public instance
+        ∇ r←get
+          r←client
+        ∇
+    :endproperty
+
+    ∇ Z←New _client
+      :Access public shared
+      Z←⎕NEW ⎕THIS _client
+    ∇
+
+    ∇ const0 _client
+      :Access public
+      :Implements constructor
+      client←CloneClient _client
+      client.Host←'s3.amazonaws.com'
+      client.URI←'/'
+    ∇
+
+    ∇ Z←GetBuckets;res;xml;bc;b;tb
+      :Access public instance
+      res←client.SendRequest
+      CheckContentTypeXML res
+     
+      xml←⎕XML res.Content
+      bc←(xml[;0]=3)⊆↓xml
+     
+      Z←⍬
+     
+      :For b :In bc
+          tb←##.##.Bucket.New ⎕THIS
+          tb.(Name CreationDate)←2⊃¨b
+          Z,←tb
+      :EndFor
+    ∇
+:EndClass

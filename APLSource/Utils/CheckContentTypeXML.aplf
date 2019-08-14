@@ -1,0 +1,5 @@
+ CheckContentTypeXML←{
+     ⍵.ContentType.ContentType≡'application/xml':_←0
+     ⎕SIGNAL⊂('EN' 6)('EM' 'Invalid Content-Type returned.')('Message' 'Content-Type should be application/xml.')
+
+ }
