@@ -9,6 +9,7 @@
     :field private contToken←''
     :field private nextContinuationToken←''
     :field private client
+    :field private region←''
 
     :property Client
     :access public instance
@@ -39,8 +40,6 @@
           r←nextContinuationToken
         ∇
     :Endproperty
-
-
 
     :property Name
     :access public instance
@@ -160,14 +159,57 @@
       client.Domain←Name
       client.URI←'/'
       client.QueryParams←('list-type' '2')('fetch-owner' 'true')
+      client.Region←Region
       :If 0≢params
           client.QueryParams,←params
       :EndIf
       client.QueryParams←client.QueryParams[⍋0⊃¨client.QueryParams]
      
-      res←client.SendRequest
+      res←client.SendRequest 1
       CheckContentTypeXML res
       Z←⎕XML res.Content
     ∇
 
+    :property Region
+    :access public instance
+        ∇ r←get
+         
+          :If 0=≢region
+              region←getBucketRegion
+          :EndIf
+         
+          r←region
+         
+        ∇
+    :endproperty
+
+    ∇ Z←getBucketRegion;res;xml;v;c2
+     
+      c2←CloneClient client
+      c2.Host←'s3.amazonaws.com'
+      c2.Domain←Name
+      c2.URI←'/'
+      c2.QueryParams←,⊂'location' ''
+     
+      res←c2.SendRequest 0
+     
+      CheckContentTypeXML res
+      xml←⎕XML res.Content
+     
+      :If 400=res.StatusCode
+          v←xml #.AWS.Utils.GetXMLTagValue'Message'
+          Z←↑('the region ''.+'' is wrong; expecting ''(.+)'''⎕S'\1')v
+          :Return
+      :EndIf
+     
+      v←2⊃xml[xml[;1]⍳⊂'LocationConstraint';]
+     
+      :If 0=≢v
+      ⍝ https://docs.aws.amazon.com/AmazonS3/latest/API/RESTBucketGETlocation.html
+      ⍝US East(N.Virginia),
+          Z←'us-east-1'
+      :Else
+          stop
+      :EndIf
+    ∇
 :EndClass

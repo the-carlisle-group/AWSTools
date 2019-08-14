@@ -293,7 +293,7 @@
           (¯1↓∊h,¨';')
       }
 
-    ∇ Z←SendRequest;h;c;r;res;xml
+    ∇ Z←SendRequest signalError;h;c;r;res;xml
       :Access public instance
       h←⍬
       h,←⊂'Accept-Encoding' 'gzip'
@@ -324,8 +324,9 @@
       r.Content←Body
       r.Headers←h
       res←c rumba.SendAndReceive r
-     
-      :If res.StatusCode≠200
+            
+        :if signalError
+      :andIf (res.StatusCode<200)∨(res.StatusCode>300)
           SignalError res
       :EndIf
      

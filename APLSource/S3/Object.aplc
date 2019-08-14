@@ -20,6 +20,17 @@
     :field private contentType←''
     :field private contentLength←0
     :field private lastRetreived←⍬
+    :field private version←0
+ 
+     :property  Version
+    :access public
+
+        ∇ r←get
+          r←version
+        ∇
+
+    :endproperty
+
 
     :property  IsRetreived
     :access public
@@ -187,7 +198,7 @@
       client.Domain←bucket.Name
     ∇
 
-    ∇ Z←GetValue;res
+    ∇ {Z}←GetValue;res
       :Access public instance
       ⍝ Z   : 0 if no value
      
@@ -196,7 +207,7 @@
       :EndIf
      
       client.HTTPMethod←'GET'
-      res←client.SendRequest
+      res←client.SendRequest 1
      
       contentType←res.ContentType.ContentType
       contentLength←res.ContentLength
@@ -208,7 +219,7 @@
     ∇
 
 
-    ∇ Z←GetMetaData;res
+    ∇ {Z}←GetMetaData;res
       :Access public instance
       ⍝ Z   : 0 if no value
      
@@ -228,6 +239,26 @@
      
       Z←0
     ∇
-
+    
+    ∇Z←Delete;res
+    :Access public instance
+      ⍝ Z   : 0 if deleted
+     
+      :If 0=≢Key
+          ⎕SIGNAL⊂('EN' 6)('EM' 'Key property is empty.')('Message' 'Key must be a valid object on S3.')
+      :EndIf
+     
+      client.HTTPMethod←'DELETE'
+      res←client.SendRequest
+      Z←res.StatusCode ≠204
+     
+    ⍝  contentType←''
+⍝      contentLength←0
+⍝     
+⍝      isRetreived←0
+⍝      value←⍬
+⍝      lastRetreived←⍬
+⍝     
+      ∇
 
 :EndClass

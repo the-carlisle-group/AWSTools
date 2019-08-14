@@ -24,7 +24,7 @@
 
     ∇ Z←GetBuckets;res;xml;bc;b;tb
       :Access public instance
-      res←client.SendRequest
+      res←client.SendRequest 1
       CheckContentTypeXML res
      
       xml←⎕XML res.Content
