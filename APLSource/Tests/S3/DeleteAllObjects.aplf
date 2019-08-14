@@ -1,0 +1,20 @@
+ DeleteAllObjects←{
+     c←##.##.Client.New
+     s←##.##.S3.Service.New c
+     b←0⊃s.GetBuckets
+     _←b{
+         ob←#.AWS.S3.Object.New ⍺
+         ob.ACL←'public-read'
+         ob.ContentType←'text/plain'
+         ob.Value←'this is some text',⎕UCS 13 10
+         ob.Value,←'Current Time: ',#.AWS.Utils.GetTimeStamp
+         ob.Key←'test_',(' '~⍨∊⍕⎕TS),'.txt'
+         ob.Put
+     }⍳¨?5
+     obs←b.GetAllObjects
+     _←obs.Delete
+     _←⎕DL 1
+     obs←b.GetAllObjects
+     0≠≢obs:⎕←'Error deleting objects'
+     0
+ }

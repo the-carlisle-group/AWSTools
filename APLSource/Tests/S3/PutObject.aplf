@@ -1,0 +1,25 @@
+ PutObject←{
+     c←##.##.Client.New
+     s←##.##.S3.Service.New c
+     b←0⊃s.GetBuckets
+     ob←#.AWS.S3.Object.New b
+     ob.ACL←'public-read'
+     ob.ContentType←'text/plain'
+     ob.Value←'this is some text',⎕UCS 13 10
+     ob.Value,←'Current Time: ',#.AWS.Utils.GetTimeStamp
+     ob.Key←'test_',(' '~⍨∊⍕⎕TS),'.txt'
+     ok←ob.Put
+    ⍝ _←⎕SE.UCMD'open ','https://',b.Name,'.s3.amazonaws.com/',ob.Key
+
+     ob←#.AWS.S3.Object.New b
+     ⍝ ob.ACL←'public-read'
+     ob.ContentType←'text/plain'
+     ob.Value←'this is some text',⎕UCS 13 10
+     ob.Value,←'Current Time: ',#.AWS.Utils.GetTimeStamp
+     ob.Key←'test_',(' '~⍨∊⍕⎕TS),'.txt'
+     ok←ob.Put
+     ⍝ will be error becaues private!
+    ⍝ _←⎕SE.UCMD'open ','https://',b.Name,'.s3.amazonaws.com/',ob.Key
+
+     0
+ }

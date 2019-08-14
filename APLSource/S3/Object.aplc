@@ -18,11 +18,30 @@
     :field private isRetreived←0
     :field private value  ←⍬
     :field private contentType←''
-    :field private contentLength←0
     :field private lastRetreived←⍬
-    :field private version←0
- 
-     :property  Version
+    :field private version←''
+    :field private acl←'private'
+
+    :field public shared Readonly ACLList←'private'  'public-read'  'public-read-write'  'aws-exec-read' 'authenticated-read' 'bucket-owner-read'  'bucket-owner-full-control'
+
+    :property  ACL
+    :access public
+      ⍝
+⍝        ∇ r←get
+⍝          r←acl
+⍝        ∇
+⍝
+        ∇ set v
+         
+          :If ~(⊂v.NewValue)∊ACLList
+              ⎕SIGNAL⊂('EN' 6)('EM' 'Invalid Access Control List value.')('Message' 'See Object.ACLList for options.')
+          :EndIf
+          acl←v.NewValue
+        ∇
+
+    :endproperty
+
+    :property  Version
     :access public
 
         ∇ r←get
@@ -81,11 +100,7 @@
     :access public
 
         ∇ r←get
-          r←contentLength
-        ∇
-
-        ∇ set v
-          contentLength←v.NewValue
+          r←≢value
         ∇
 
     :endproperty
@@ -193,12 +208,12 @@
       :Access public
       :Implements constructor
       bucket←s
-      client←CloneClient bucket.Client
+      client←bucket.Client.Clone
       client.Host←'s3.amazonaws.com'
       client.Domain←bucket.Name
     ∇
 
-    ∇ {Z}←GetValue;res
+    ∇ {Z}←GetValue;res;c
       :Access public instance
       ⍝ Z   : 0 if no value
      
@@ -206,11 +221,12 @@
           ⎕SIGNAL⊂('EN' 6)('EM' 'Key property is empty.')('Message' 'Key must be a valid object on S3.')
       :EndIf
      
-      client.HTTPMethod←'GET'
-      res←client.SendRequest 1
+      c←client.Clone
+      c.HTTPMethod←'GET'
+      res←c.SendRequest 1
      
       contentType←res.ContentType.ContentType
-      contentLength←res.ContentLength
+      processHeaders res.Headers
      
       isRetreived←1
       value←res.Content
@@ -218,8 +234,16 @@
       Z←0=≢value
     ∇
 
+      processHeaders←{
+          h←⊃⍵
+          lastModified∘←1⊃h[h[;0]⍳⊂'last-modified';]
+          eTag∘←1⊃h[h[;0]⍳⊂'etag';]
+          version∘←1⊃h[h[;0]⍳⊂'x-amz-version-id';]
+     
+      }
 
-    ∇ {Z}←GetMetaData;res
+
+    ∇ {Z}←GetMetaData;res;c
       :Access public instance
       ⍝ Z   : 0 if no value
      
@@ -227,11 +251,12 @@
           ⎕SIGNAL⊂('EN' 6)('EM' 'Key property is empty.')('Message' 'Key must be a valid object on S3.')
       :EndIf
      
-      client.HTTPMethod←'HEAD'
-      res←client.SendRequest
+      c←client.Clone
+      c.HTTPMethod←'HEAD'
+      res←c.SendRequest 1
      
       contentType←res.ContentType.ContentType
-      contentLength←res.ContentLength
+      processHeaders res.Headers
      
       isRetreived←0
       value←⍬
@@ -239,26 +264,38 @@
      
       Z←0
     ∇
-    
-    ∇Z←Delete;res
-    :Access public instance
+
+    ∇ Z←Delete;res;c
+      :Access public instance
       ⍝ Z   : 0 if deleted
      
       :If 0=≢Key
           ⎕SIGNAL⊂('EN' 6)('EM' 'Key property is empty.')('Message' 'Key must be a valid object on S3.')
       :EndIf
      
-      client.HTTPMethod←'DELETE'
-      res←client.SendRequest
-      Z←res.StatusCode ≠204
+      c←client.Clone
+      c.HTTPMethod←'DELETE'
+      res←c.SendRequest 1
+      Z←res.StatusCode≠204
      
-    ⍝  contentType←''
-⍝      contentLength←0
-⍝     
-⍝      isRetreived←0
-⍝      value←⍬
-⍝      lastRetreived←⍬
-⍝     
-      ∇
+    ∇
+
+    ∇ Z←Put;res;c
+      :Access public instance
+      ⍝ Z   : 0 if deleted
+     
+      :If 0=≢Key
+          ⎕SIGNAL⊂('EN' 6)('EM' 'Key property is empty.')('Message' 'Key must be a valid object on S3.')
+      :EndIf
+     
+      c←client.Clone
+      c.HTTPMethod←'PUT'
+      c.Body←Value
+      c.Headers←,⊂'Content-Type' 'text/plain'
+      c.Headers,←⊂'x-amz-acl'acl
+     
+      res←c.SendRequest 1
+      Z←200≠res.StatusCode
+    ∇
 
 :EndClass

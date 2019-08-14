@@ -2,7 +2,20 @@
 
     :include Utils
 
-    :field public ReadOnly RequiredHeaders←'Host' 'x-amz-content-sha256' 'x-amz-date'
+    :property RequiredHeaders
+    :access public instance
+
+        ∇ r←get
+          r←'Host' 'x-amz-content-sha256' 'x-amz-date'
+          :If 0≠≢body
+              r,←⊂'Content-Length'
+          :EndIf
+         
+          :If 0≠≢Headers
+              r,←0⊃¨Headers
+          :EndIf
+        ∇
+    :endproperty
 
     :field private secretKey
     :Property SecretKey
@@ -124,7 +137,6 @@
 
     :field private headers←⍬
 
-
     :property Headers
     :access public instance
         ∇ r←get;hh;h
@@ -146,7 +158,7 @@
 
     :property HeadersConical
     :access public instance
-        ∇ r←get;hh;h;th
+        ∇ r←get;hh;h;th  ;hi
          
           hh←⍬
          
@@ -162,7 +174,11 @@
                   hh,←⊂h,':',Hash_SHA256 Body
               :Case 'x-amz-date'
                   hh,←⊂h,':',TimeStamp
-         
+              :Case 'content-length'
+                  hh,←⊂h,':',⍕≢body 
+                  :else
+hi←((819⌶)¨ 0⊃¨Headers)⍳⊂h
+hh,←⊂h,':',hi 1⊃Headers
               :EndSelect
          
           :EndFor
@@ -199,10 +215,12 @@
         ∇
     :endproperty
 
+
     ∇ Z←New
       :Access public shared
       Z←⎕NEW ⎕THIS
     ∇
+
 
     ∇ const0
       :Access public
@@ -301,6 +319,10 @@
       h,←⊂'x-amz-content-sha256'(Hash_SHA256 Body)
       h,←⊂'x-amz-date'TimeStamp
      
+      :If 0≠≢Headers
+          h,←Headers
+      :EndIf
+     
       rumba.##.Conga.X509Cert.LDRC←rumba.##.Conga
       c←rumba.NewClient''
      
@@ -309,6 +331,7 @@
           c.Host←Domain,'.'
       :EndIf
       c.Host,←Host
+     
       c.Secure←1
       c.Port←443
       c.X509←⎕NEW rumba.##.Conga.X509Cert
@@ -324,13 +347,20 @@
       r.Content←Body
       r.Headers←h
       res←c rumba.SendAndReceive r
-            
-        :if signalError
-      :andIf (res.StatusCode<200)∨(res.StatusCode>300)
+     
+      :If signalError
+      :AndIf (res.StatusCode<200)∨(res.StatusCode>300)
           SignalError res
       :EndIf
      
       Z←res
+    ∇      
+    
+    ∇Z←    Clone
+:access public instance
+     Z←(↑↑⎕class ⎕this).New
+     Z.(AccessKey SecretKey Region)←⎕this.(AccessKey SecretKey Region)     
+     Z.(Host Domain URI)←⎕this.(Host Domain URI)
     ∇
 
 

@@ -17,7 +17,7 @@
     ∇ const0 _client
       :Access public
       :Implements constructor
-      client←CloneClient _client
+      client← _client.Clone
       client.Host←'s3.amazonaws.com'
       client.URI←'/'
     ∇
