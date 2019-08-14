@@ -48,6 +48,12 @@
           r←version
         ∇
 
+
+        ∇ set v
+          version←''
+          →('null'≡v.NewValue)/0
+          version←v.NewValue
+        ∇
     :endproperty
 
 
@@ -238,7 +244,7 @@
           h←⊃⍵
           lastModified∘←1⊃h[h[;0]⍳⊂'last-modified';]
           eTag∘←1⊃h[h[;0]⍳⊂'etag';]
-          version∘←1⊃h[h[;0]⍳⊂'x-amz-version-id';]
+          Version∘←1⊃h[h[;0]⍳⊂'x-amz-version-id';]
      
       }
 
