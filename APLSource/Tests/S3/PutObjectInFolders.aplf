@@ -1,38 +1,45 @@
- PutObject←{
+ PutObjectInFolders←{
      c←##.##.Client.New
      s←##.##.S3.Service.New c
      b←#.AWS.S3.Bucket.New s
      b.Name←'denmark2019-v002'
      b.Region←'us-east-1'
+
      ob←#.AWS.S3.Object.New b
      ob.ACL←'public-read'
      ob.ContentType←'text/plain'
      ob.Value←'this is some text',⎕UCS 13 10
      ob.Value,←'Current Time: ',#.AWS.Utils.GetTimeStamp
+     ob.Folder←'log/'
      ob.Key←'test_',(' '~⍨∊⍕⎕TS),'.txt'
      ok←ob.Put
-    ⍝ _←⎕SE.UCMD'open ','https://',b.Name,'.s3.amazonaws.com/',ob.Key
+     logLink←'https://',b.Name,'.s3.amazonaws.com',ob.URI
 
      ob←#.AWS.S3.Object.New b
      ob.ACL←'public-read'
      ob.ContentType←'application/json'
      ob.Value←⎕JSON ⎕DMX
+     ob.Folder←'errors'
      ob.Key←'dmx_',(' '~⍨∊⍕⎕TS),'.json'
      ok←ob.Put
-    ⍝ _←⎕SE.UCMD'open ','https://',b.Name,'.s3.amazonaws.com/',ob.Key
+     errLink←'https://',b.Name,'.s3.amazonaws.com',ob.URI
 
+     html←'<html><body>'
+     html,←'<p>'
+     html,←'<a href="',logLink,'">Log:</a>'
+     html,←'</p>'
+     html,←'<p>'
+     html,←'<a href="',errLink,'">Error:</a>'
+     html,←'</p>'
+     html,←'</body></html>'
 
      ob←#.AWS.S3.Object.New b
-     ⍝ ob.ACL←'public-read'
-     ob.ContentType←'text/plain'
-     ob.Value←'this is some text',⎕UCS 13 10
-     ob.Value,←'Current Time: ',#.AWS.Utils.GetTimeStamp
-     ob.Key←'test_',(' '~⍨∊⍕⎕TS),'.txt'
+     ob.ACL←'public-read'
+     ob.ContentType←'text/html'
+     ob.Value←html
+     ob.Key←'page_',(' '~⍨∊⍕⎕TS),'.html'
      ok←ob.Put
-     ⍝ will be error becaues private!
-    ⍝ _←⎕SE.UCMD'open ','https://',b.Name,'.s3.amazonaws.com/',ob.Key
-
-
+     _←⎕SE.UCMD'open ','https://',b.Name,'.s3.amazonaws.com',ob.URI
 
      0
  }

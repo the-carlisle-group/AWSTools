@@ -70,7 +70,7 @@
       :Access public
       :Implements constructor
       service←s
-      client← service.Client.Clone
+      client←service.Client.Clone
     ∇
 
     ∇ Z←GetObjects(startAfterId maxKeys);res;xml;bc;b;tb;params;pi
@@ -91,7 +91,7 @@
       :EndIf
      
       xml←getObjects params
-
+     
       →(0=⍎2⊃xml[(xml[;1]⍳⊂'KeyCount');])/0
      
       isTruncated←'true'≡2⊃xml[xml[;1]⍳⊂'IsTruncated';]
@@ -180,13 +180,16 @@
           :EndIf
          
           r←region
-         
+        ∇
+
+        ∇ set v
+          region←v.NewValue
         ∇
     :endproperty
 
     ∇ Z←getBucketRegion;res;xml;v;c2
      
-      c2← client.Clone
+      c2←client.Clone
       c2.Host←'s3.amazonaws.com'
       c2.Domain←Name
       c2.URI←'/'

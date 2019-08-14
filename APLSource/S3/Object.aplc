@@ -21,16 +21,22 @@
     :field private lastRetreived←⍬
     :field private version←''
     :field private acl←'private'
+    :field private folder←''
 
     :field public shared Readonly ACLList←'private'  'public-read'  'public-read-write'  'aws-exec-read' 'authenticated-read' 'bucket-owner-read'  'bucket-owner-full-control'
+    
+    :property URI
+    :access public instance
+    
+    ∇r←get
+r←client.URI
+    ∇
+    
+    :endproperty                
 
     :property  ACL
     :access public
-      ⍝
-⍝        ∇ r←get
-⍝          r←acl
-⍝        ∇
-⍝
+
         ∇ set v
          
           :If ~(⊂v.NewValue)∊ACLList
@@ -40,6 +46,20 @@
         ∇
 
     :endproperty
+                 
+
+    :property  Folder
+    :access public
+
+        ∇ r←get
+          r←folder
+        ∇
+
+
+        ∇ set v
+          folder←v.NewValue, (            '/'≠¯1↑     v.NewValue)/'/'
+        ∇
+    :endproperty                 
 
     :property  Version
     :access public
@@ -145,9 +165,16 @@
           r←key
         ∇
 
-        ∇ set v
-          key←v.NewValue
-          client.URI←'/',Key
+        ∇ set v;t
+:if (⊂'/')∊v.NewValue
+ t←        (    ~      v.NewValue='/')⊆v.NewValue
+          key←↑¯1↑                  t
+folder←∊(¯1↓t),¨'/'
+:else
+key←v.NewValue
+:endif
+
+          client.URI←'/',Folder, Key
         ∇
 
     :endproperty
@@ -294,10 +321,11 @@
           ⎕SIGNAL⊂('EN' 6)('EM' 'Key property is empty.')('Message' 'Key must be a valid object on S3.')
       :EndIf
      
-      c←client.Clone
+      c←client.Clone    
+      c.URI←'/',Folder,Key
       c.HTTPMethod←'PUT'
       c.Body←Value
-      c.Headers←,⊂'Content-Type' 'text/plain'
+      c.Headers←,⊂'Content-Type' ContentType
       c.Headers,←⊂'x-amz-acl'acl
      
       res←c.SendRequest 1
