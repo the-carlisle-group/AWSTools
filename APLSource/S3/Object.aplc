@@ -83,7 +83,7 @@
         ∇
 
         ∇ set v
-          value←v.NewValue
+          value←⎕UCS'UTF-8'⎕UCS  v.NewValue
         ∇
 
     :endproperty
