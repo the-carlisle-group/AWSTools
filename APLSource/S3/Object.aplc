@@ -8,7 +8,7 @@
     :field private client
     :field private bucket
 
-    :field private   key
+    :field private   key←''
     :field private   lastModified
     :field private   eTag
     :field private   size
@@ -24,15 +24,15 @@
     :field private folder←''
 
     :field public shared Readonly ACLList←'private'  'public-read'  'public-read-write'  'aws-exec-read' 'authenticated-read' 'bucket-owner-read'  'bucket-owner-full-control'
-    
+
     :property URI
     :access public instance
-    
-    ∇r←get
-r←client.URI
-    ∇
-    
-    :endproperty                
+
+        ∇ r←get
+          r←client.URI.URI
+        ∇
+
+    :endproperty
 
     :property  ACL
     :access public
@@ -46,7 +46,7 @@ r←client.URI
         ∇
 
     :endproperty
-                 
+
 
     :property  Folder
     :access public
@@ -57,9 +57,10 @@ r←client.URI
 
 
         ∇ set v
-          folder←v.NewValue, (            '/'≠¯1↑     v.NewValue)/'/'
+          folder←v.NewValue,('/'≠¯1↑v.NewValue)/'/'
+          Key←key
         ∇
-    :endproperty                 
+    :endproperty
 
     :property  Version
     :access public
@@ -103,7 +104,7 @@ r←client.URI
         ∇
 
         ∇ set v
-          value←⎕UCS'UTF-8'⎕UCS  v.NewValue
+          value←v.NewValue
         ∇
 
     :endproperty
@@ -166,15 +167,16 @@ r←client.URI
         ∇
 
         ∇ set v;t
-:if (⊂'/')∊v.NewValue
- t←        (    ~      v.NewValue='/')⊆v.NewValue
-          key←↑¯1↑                  t
-folder←∊(¯1↓t),¨'/'
-:else
-key←v.NewValue
-:endif
-
-          client.URI←'/',Folder, Key
+          :If (⊂'/')∊v.NewValue
+              t←(~v.NewValue='/')⊆v.NewValue
+              key←↑¯1↑t
+              folder←∊(¯1↓t),¨'/'
+          :Else
+              key←v.NewValue
+          :EndIf
+         
+          client.URI.Path←'/',Folder,Key
+         
         ∇
 
     :endproperty
@@ -242,8 +244,10 @@ key←v.NewValue
       :Implements constructor
       bucket←s
       client←bucket.Client.Clone
-      client.Host←'s3.amazonaws.com'
-      client.Domain←bucket.Name
+     
+      :If s.Name≢(≢s.Name)↑client.URI.Host
+          client.URI.Host←s.Name,'.',client.URI.Host
+      :EndIf
     ∇
 
     ∇ {Z}←GetValue;res;c
@@ -307,10 +311,10 @@ key←v.NewValue
       :EndIf
      
       c←client.Clone
+      c.URI.QueryParams←⍬
       c.HTTPMethod←'DELETE'
       res←c.SendRequest 1
       Z←res.StatusCode≠204
-     
     ∇
 
     ∇ Z←Put;res;c
@@ -321,11 +325,16 @@ key←v.NewValue
           ⎕SIGNAL⊂('EN' 6)('EM' 'Key property is empty.')('Message' 'Key must be a valid object on S3.')
       :EndIf
      
-      c←client.Clone    
-      c.URI←'/',Folder,Key
+      c←client.Clone
       c.HTTPMethod←'PUT'
-      c.Body←Value
-      c.Headers←,⊂'Content-Type' ContentType
+     
+      :If 80=⎕DR value
+          c.Body←value
+      :Else
+          c.Body←⎕UCS'UTF-8'⎕UCS value
+      :EndIf
+     
+      c.Headers←,⊂'Content-Type'ContentType
       c.Headers,←⊂'x-amz-acl'acl
      
       res←c.SendRequest 1

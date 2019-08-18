@@ -156,15 +156,14 @@
 
     ∇ Z←getObjects params;res
       :Access private
-      client.Host←'s3.amazonaws.com'
-      client.Domain←Name
-      client.URI←'/'
-      client.QueryParams←('list-type' '2')('fetch-owner' 'true')
+      client.URI.Host←Name,'.s3.amazonaws.com'
+      client.URI.Path←'/'
+      client.URI.QueryParams←('list-type' '2')('fetch-owner' 'true')
       client.Region←Region
-      :If 0≢params
-          client.QueryParams,←params
+      :If 0≠≢params
+          client.URI.QueryParams,←params
       :EndIf
-      client.QueryParams←client.QueryParams[⍋0⊃¨client.QueryParams]
+      client.URI.QueryParams←client.URI.QueryParams[⍋0⊃¨client.URI.QueryParams]
      
       res←client.SendRequest 1
       CheckContentTypeXML res
@@ -190,10 +189,9 @@
     ∇ Z←getBucketRegion;res;xml;v;c2
      
       c2←client.Clone
-      c2.Host←'s3.amazonaws.com'
-      c2.Domain←Name
-      c2.URI←'/'
-      c2.QueryParams←,⊂'location' ''
+      c2.URI.Host←Name,'.s3.amazonaws.com'
+      c2.URI.Path←'/'
+      c2.URI.QueryParams←,⊂'location' ''
      
       res←c2.SendRequest 0
      

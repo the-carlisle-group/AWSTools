@@ -1,0 +1,5 @@
+ RunTests←{
+     r←1↓refs ⎕THIS
+     out←{⍵.⍎¨(⍵.⎕NL ¯3),¨⊂' 0'}¨r
+     out
+ }

@@ -17,9 +17,9 @@
     ∇ const0 _client
       :Access public
       :Implements constructor
-      client← _client.Clone
-      client.Host←'s3.amazonaws.com'
-      client.URI←'/'
+      client←_client.Clone
+      client.URI.Host←'s3.amazonaws.com'
+      client.URI.Path←'/'
     ∇
 
     ∇ Z←GetBuckets;res;xml;bc;b;tb

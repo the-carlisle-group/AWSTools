@@ -1,0 +1,89 @@
+:class URI
+    :include Utils
+
+    :field public Path←'/'
+    :field private scheme←'https'
+    :field public QueryParams   ←⍬
+    :field private fragment ←''
+    :field public Host←''
+    :field private port←443
+
+    ∇ Z←New
+      :Access public shared
+      Z←⎕NEW ⎕THIS
+    ∇
+
+    :property Fragment
+    :access public instance
+        ∇ r←get
+          r←fragment
+        ∇
+
+        ∇ set v
+          fragment←v.NewValue
+          →(0=≢fragment)/0
+          fragment←(('#'≠↑fragment)/'#'),fragment
+        ∇
+    :endproperty
+
+    :property Port
+    :access public instance
+        ∇ r←get
+          r←port
+        ∇
+
+        ∇ set v
+          port←v.NewValue
+        ∇
+    :endproperty
+
+
+    :property Scheme
+    :access public instance
+        ∇ r←get
+          r←scheme
+        ∇
+
+        ∇ set v
+          scheme←(819⌶)v.NewValue
+          :If ~(⊆scheme)∊'http' 'https'
+              'Scheme must be http or https.'⎕SIGNAL 6
+          :EndIf
+        ∇
+    :endproperty
+
+    :property Authority
+    :access public instance
+
+        ∇ r←get
+             ⍝ r←Scheme,Host,Port,Path,Fragment
+          ⎕SIGNAL 11
+        ∇
+    :endproperty
+
+    :property Query
+    :access public instance
+        ∇ r←get
+          r←''
+          :If 0≠≢QueryParams
+              r,←'?',¯1↓∊({(UriEncode 0⊃⍵),'=',UriEncode 1⊃⍵}¨QueryParams),¨'&'
+          :EndIf
+         
+        ∇
+    :endproperty
+
+    :property URI
+    :access public
+        ∇ r←get
+          r←Scheme,'://',Host
+         
+          :If scheme port≢'https' 443
+          :AndIf scheme port≢'http' 80
+              r,←(':',⍕Port)
+          :EndIf
+         
+          r,←,Path,Query,Fragment
+        ∇
+    :endproperty
+
+:endclass

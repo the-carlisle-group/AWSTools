@@ -39,7 +39,7 @@
      ob.Value←html
      ob.Key←'page_',(' '~⍨∊⍕⎕TS),'.html'
      ok←ob.Put
-     _←⎕SE.UCMD'open ','https://',b.Name,'.s3.amazonaws.com',ob.URI
+     _←⎕SE.UCMD'open ',ob.URI
 
      0
  }

@@ -70,36 +70,7 @@
         ∇
     :endproperty
 
-    :field private    host←''
-    :property Host
-    :access public instance
-
-        ∇ r←get
-          r←host
-        ∇
-
-        ∇ set v
-          host←v.NewValue
-        ∇
-
-    :endproperty
-
-    :field private    domain←''
-    :property Domain
-    :access public instance
-
-        ∇ r←get
-          r←domain
-        ∇
-
-        ∇ set v
-          domain←v.NewValue
-        ∇
-
-    :endproperty
-
-
-    :field private uri←'/'
+    :field private uri
     :property URI
     :access public instance
         ∇ r←get
@@ -158,27 +129,23 @@
 
     :property HeadersConical
     :access public instance
-        ∇ r←get;hh;h;th  ;hi
+        ∇ r←get;hh;h;th;hi
          
           hh←⍬
          
           :For h :In (819⌶)¨RequiredHeaders
               :Select h
               :Case 'host'
-                  th←''
-                  :If 0≠≢Domain
-                      th←Domain,'.'
-                  :EndIf
-                  hh,←⊂h,':',th,Host
+                  hh,←⊂h,':'URI.Host
               :Case 'x-amz-content-sha256'
                   hh,←⊂h,':',Hash_SHA256 Body
               :Case 'x-amz-date'
                   hh,←⊂h,':',TimeStamp
               :Case 'content-length'
-                  hh,←⊂h,':',⍕≢body 
-                  :else
-hi←((819⌶)¨ 0⊃¨Headers)⍳⊂h
-hh,←⊂h,':',hi 1⊃Headers
+                  hh,←⊂h,':',⍕≢body
+              :Else
+                  hi←((819⌶)¨0⊃¨Headers)⍳⊂h
+                  hh,←⊂h,':',hi 1⊃Headers
               :EndSelect
          
           :EndFor
@@ -188,6 +155,7 @@ hh,←⊂h,':',hi 1⊃Headers
         ∇
 
     :endproperty
+
 
     :field body←''
     :property Body
@@ -203,19 +171,6 @@ hh,←⊂h,':',hi 1⊃Headers
 
     :endproperty
 
-    :field private queryParams            ←⍬
-    :property QueryParams
-    :access public instance
-        ∇ r←get
-          r←queryParams
-        ∇
-
-        ∇ set v
-          queryParams←v.NewValue
-        ∇
-    :endproperty
-
-
     ∇ Z←New
       :Access public shared
       Z←⎕NEW ⎕THIS
@@ -229,6 +184,7 @@ hh,←⊂h,':',hi 1⊃Headers
       timeStamp←GetTimeStamp
       SetDefaultKeys ##.##.AcreConfig.ProjectFolder
       rumba←#.CarlisleGroup.Rumba.Core
+      uri←##.##.URI.New
     ∇
 
     ∇ Reset
@@ -247,17 +203,17 @@ hh,←⊂h,':',hi 1⊃Headers
       }
 
 
-    ∇ Z←ConstructConicalRequest;cr;qp;q;ct
+    ∇ Z←ConstructConicalRequest;cr;qp;q;ct;n;v
       :Access public instance
      
       cr←HTTPMethod,NewLine
-      cr,←URI
+      cr,←URI.Path
       cr,←NewLine
      
-      :If 0≠≢QueryParams
+      :If 0≠≢URI.QueryParams
           qp←⍬
-          :For q :In QueryParams
-              qp,←⊂(UriEncode 0⊃q),'=',(UriEncode 1⊃q)
+          :For (n v) :In URI.QueryParams
+              qp,←⊂(UriEncode n),'=',(UriEncode v)
           :EndFor
           qp←qp[⍋qp]  ⍝ must sort alpa post encode
           cr,←¯1↓∊qp,¨'&'
@@ -326,24 +282,14 @@ hh,←⊂h,':',hi 1⊃Headers
       rumba.##.Conga.X509Cert.LDRC←rumba.##.Conga
       c←rumba.NewClient''
      
-      c.Host←''
-      :If 0≠≢Domain
-          c.Host←Domain,'.'
-      :EndIf
-      c.Host,←Host
-     
-      c.Secure←1
-      c.Port←443
+      c.Host,←URI.Host
+      c.Secure←URI.Scheme≡'https'
+      c.Port←URI.Port
       c.X509←⎕NEW rumba.##.Conga.X509Cert
       r←rumba.NewRequest''
      
       r.Method←HTTPMethod
-      r.URI←URI
-     
-      :If 0≠≢QueryParams
-          r.URI,←'?',¯1↓∊({(UriEncode 0⊃⍵),'=',UriEncode 1⊃⍵}¨QueryParams),¨'&'
-      :EndIf
-     
+      r.URI←URI.Path,URI.Query
       r.Content←Body
       r.Headers←h
       res←c rumba.SendAndReceive r
@@ -354,14 +300,14 @@ hh,←⊂h,':',hi 1⊃Headers
       :EndIf
      
       Z←res
-    ∇      
-    
-    ∇Z←    Clone
-:access public instance
-     Z←(↑↑⎕class ⎕this).New
-     Z.(AccessKey SecretKey Region)←⎕this.(AccessKey SecretKey Region)     
-     Z.(Host Domain URI)←⎕this.(Host Domain URI)
     ∇
 
+    ∇ Z←Clone
+      :Access public instance
+      Z←(↑↑⎕CLASS ⎕THIS).New
+      Z.(AccessKey SecretKey Region)←⎕THIS.(AccessKey SecretKey Region)
+      Z.URI←(↑∊⎕CLASS URI).New
+      Z.URI.(Fragment Host Path Port QueryParams Scheme)←⎕THIS.URI.(Fragment Host Path Port QueryParams Scheme)
+    ∇
 
 :EndClass
