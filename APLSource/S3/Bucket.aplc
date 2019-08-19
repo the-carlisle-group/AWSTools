@@ -214,4 +214,47 @@
           stop
       :EndIf
     ∇
+
+    ∇ Z←Exists;c2;res;xml
+      :Access public instance
+      c2←client.Clone
+      c2.URI.Host←Name,'.s3.amazonaws.com'
+      c2.URI.Path←'/'
+      c2.URI.QueryParams←⍬
+      :Trap 0
+          res←c2.SendRequest 1
+          Z←1
+      :Else
+          Z←0
+      :EndTrap
+    ∇
+
+    ∇ {Z}←Create;c2;res;xml
+      :Access public instance
+      ⍝ Z   : dummy
+      c2←client.Clone
+      c2.HTTPMethod←'PUT'
+      c2.URI.Host←Name,'.s3.amazonaws.com'
+      c2.URI.Path←'/'
+      c2.URI.QueryParams←⍬
+      res←c2.SendRequest 1
+      Z←0
+    ∇
+
+    ∇ {Z}←Delete;c2;res;xml
+      :Access public instance
+      ⍝ Z   : dummy
+      c2←client.Clone
+      c2.HTTPMethod←'DELETE'
+      c2.URI.Host←Name,'.s3.amazonaws.com'
+      c2.URI.Path←'/'
+      c2.URI.QueryParams←⍬
+      res←c2.SendRequest 1
+     
+      :If 204≠res.StatusCode
+          SignalError 204 'Error deleting bucket.'
+      :EndIf
+     
+      Z←0
+    ∇
 :EndClass
