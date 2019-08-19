@@ -3,11 +3,11 @@
      s←##.##.S3.Service.New c
      b←0⊃s.GetBuckets
      _←b{
-         ob←#.AWS.S3.Object.New ⍺
+         ob←##.##.S3.Object.New ⍺
          ob.ACL←'public-read'
          ob.ContentType←'text/plain'
          ob.Value←'this is some text',⎕UCS 13 10
-         ob.Value,←'Current Time: ',#.AWS.Utils.GetTimeStamp
+         ob.Value,←'Current Time: ',##.##.Utils.GetTimeStamp
          ob.Key←'test_',(' '~⍨∊⍕⎕TS),'.txt'
          ob.Put
      }⍳¨?5

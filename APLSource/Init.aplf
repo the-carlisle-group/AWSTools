@@ -1,3 +1,4 @@
- Init
+ {Z}←Init
  #.DCL.Crypt.Init #.DCL.AcreConfig.ProjectFolder,'Assets/DCL/'
  #.CarlisleGroup.Rumba.Core.InitConga''
+ Z←0
