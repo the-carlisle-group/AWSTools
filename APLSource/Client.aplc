@@ -2,11 +2,14 @@
 
     :include Utils
 
+    :field private requiredHeaders←'Host' 'x-amz-content-sha256' 'x-amz-date'
     :property RequiredHeaders
     :access public instance
 
         ∇ r←get
-          r←'Host' 'x-amz-content-sha256' 'x-amz-date'
+        
+        r←requiredHeaders
+
           :If 0≠≢body
               r,←⊂'Content-Length'
           :EndIf
@@ -15,6 +18,13 @@
               r,←0⊃¨Headers
           :EndIf
         ∇
+
+
+        ∇ set v
+          requiredHeaders←v.NewValue
+        ∇
+
+
     :endproperty
 
     :field private secretKey
@@ -138,7 +148,11 @@
               :Case 'host'
                   hh,←⊂h,':'URI.Host
               :Case 'x-amz-content-sha256'
-                  hh,←⊂h,':',Hash_SHA256 Body
+                  :If unsignedPayload
+                      hh,←⊂h,':UNSIGNED-PAYLOAD'
+                  :Else
+                      hh,←⊂h,':',Hash_SHA256 Body
+                  :EndIf
               :Case 'x-amz-date'
                   hh,←⊂h,':',TimeStamp
               :Case 'content-length'
@@ -156,6 +170,17 @@
 
     :endproperty
 
+    :field private unsignedPayload←0
+    :property UnsignedPayload
+    :access public instance
+        ∇ r←get
+          r←unsignedPayload
+        ∇
+
+        ∇ set v
+          unsignedPayload←v.NewValue
+        ∇
+    :endproperty
 
     :field body←''
     :property Body
@@ -170,6 +195,7 @@
         ∇
 
     :endproperty
+
 
     ∇ Z←New
       :Access public shared
@@ -187,10 +213,6 @@
       uri←##.##.URI.New
     ∇
 
-    ∇ Reset
-      :Access public instance
-      host←
-    ∇
 
       SetDefaultKeys←{
           p←⍵
@@ -223,7 +245,11 @@
       cr,←∊HeadersConical
       cr,←NewLine
       cr,←(getHeaderNameString HeaderNames),NewLine
-      cr,←Hash_SHA256 Body
+      :If unsignedPayload
+          cr,←'UNSIGNED-PAYLOAD'
+      :Else
+          cr,←Hash_SHA256 Body
+      :EndIf
       Z←cr
     ∇
 
@@ -234,6 +260,7 @@
       ss,←Date,'/',Region,'/',Service,'/aws4_request',NewLine
       ss,←Hash_SHA256 ConstructConicalRequest
       Z←ss
+     
     ∇
 
 
@@ -246,18 +273,27 @@
       Z←80 ⎕DR signingKey
     ∇
 
-    ∇ Z←ConstructAuthorizationHeader;sigKey;reqSig;ss;authHeader
+    ∇ Z←ConstructSignature;ss;sigKey
       :Access public instance
       ss←ConstructStringToSign
       sigKey←ConstructSignatureKey
-      reqSig←∊ToHex sigKey HMAC_SHA256 ss
-     
+      Z←∊ToHex sigKey HMAC_SHA256 ss
+    ∇
+
+    ∇ Z←ConstructCredentialLine
+      :Access public instance
+      Z←AccessKey
+      Z,←,'/',Date
+      Z,←'/',Region
+      Z,←'/',Service
+      Z,←'/aws4_request'
+    ∇
+
+    ∇ Z←ConstructAuthorizationHeader;sigKey;reqSig;ss;authHeader
+      :Access public instance
+      reqSig←ConstructSignature
       authHeader←'AWS4-HMAC-SHA256 '
-      authHeader,←'Credential=',AccessKey
-      authHeader,←,'/',Date
-      authHeader,←'/',Region
-      authHeader,←'/',Service
-      authHeader,←'/aws4_request, '
+      authHeader,←'Credential=',ConstructCredentialLine,', '
       authHeader,←'SignedHeaders=',(getHeaderNameString HeaderNames),', '
       authHeader,←'Signature=',reqSig
       Z←authHeader

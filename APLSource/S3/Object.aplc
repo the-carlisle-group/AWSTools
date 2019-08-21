@@ -25,6 +25,18 @@
 
     :field public shared Readonly ACLList←'private'  'public-read'  'public-read-write'  'aws-exec-read' 'authenticated-read' 'bucket-owner-read'  'bucket-owner-full-control'
 
+    :field private metaData←⍬
+    :property MetaData
+    :access public instance
+        ∇ r←get
+          r←metaData
+        ∇
+
+        ∇ set v
+          metaData←v.NewValue
+        ∇
+    :endproperty
+
     :property URI
     :access public instance
 
@@ -43,6 +55,10 @@
               ⎕SIGNAL⊂('EN' 6)('EM' 'Invalid Access Control List value.')('Message' 'See Object.ACLList for options.')
           :EndIf
           acl←v.NewValue
+        ∇
+
+        ∇ r←get
+          r←acl
         ∇
 
     :endproperty
@@ -263,7 +279,7 @@
       res←c.SendRequest 1
      
       contentType←res.ContentType.ContentType
-      processHeaders res.Headers
+      processHeaders res
      
       isRetreived←1
       value←res.Content
@@ -273,10 +289,14 @@
 
       processHeaders←{
           h←⊃⍵
-          lastModified∘←1⊃h[h[;0]⍳⊂'last-modified';]
-          eTag∘←1⊃h[h[;0]⍳⊂'etag';]
-          Version∘←1⊃h[h[;0]⍳⊂'x-amz-version-id';]
+          lastModified∘←⍵ #.CarlisleGroup.Rumba.Core.GetHeaderValue'last-modified'
+          eTag∘←⍵ #.CarlisleGroup.Rumba.Core.GetHeaderValue'etag'
+          Version∘←⍵ #.CarlisleGroup.Rumba.Core.GetHeaderValue'x-amz-version-id'
      
+          metaIndex←⍸∨/('x-amz-meta-')⍷⊃0⊃¨⍵.Headers
+          0=≢metaIndex:_←0
+          metaData←res.Headers[metaIndex]
+          1:_←0
       }
 
 
@@ -337,8 +357,34 @@
       c.Headers←,⊂'Content-Type'ContentType
       c.Headers,←⊂'x-amz-acl'acl
      
+      :If ⍬≢metaData
+          c.Headers,←metaData
+      :EndIf
+     
       res←c.SendRequest 1
       Z←200≠res.StatusCode
+    ∇
+
+    ∇ Z←GeneratePreSignedGet seconds;cr;ss;camz;out;sig;exp;c
+      :Access public instance
+     
+      exp←seconds
+     
+      c←client.Clone
+      c.HTTPMethod←'GET'
+      c.UnsignedPayload←1
+      c.RequiredHeaders←,⊂'Host'
+     
+      c.URI.QueryParams←⍬
+      c.URI.QueryParams,←⊂('X-Amz-Algorithm' 'AWS4-HMAC-SHA256')
+      c.URI.QueryParams,←⊂('X-Amz-Credential'c.ConstructCredentialLine)
+      c.URI.QueryParams,←⊂('X-Amz-Date'c.TimeStamp)
+      c.URI.QueryParams,←⊂('X-Amz-Expires'(⍕exp))
+      c.URI.QueryParams,←⊂('X-Amz-SignedHeaders' 'host')
+     
+      out←c.URI.URI
+      out,←'&X-Amz-Signature=',c.ConstructSignature
+      Z←out
     ∇
 
 :EndClass
