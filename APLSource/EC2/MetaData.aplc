@@ -1,0 +1,109 @@
+:Class MetaData
+
+    :field public shared readonly Host←'169.254.169.254'
+    :field public shared readonly Path←'/latest/meta-data'
+
+
+    :property LocalIPv4
+    :access public shared
+
+        ∇ r←get;ePath;c
+          ePath←'/latest/meta-data/local-ipv4'
+          r←GetClient ePath
+        ∇
+
+    :endproperty
+
+    :property PublicIPv4
+    :access public shared
+
+        ∇ r←get;ePath;c
+          ePath←'/latest/meta-data/public-ipv4'
+          r←GetClient ePath
+        ∇
+
+    :endproperty
+    
+      
+    :property LocalHostname
+    :access public shared
+
+        ∇ r←get;ePath;c
+          ePath←'/latest/meta-data/local-hostname'
+          r←GetClient ePath
+        ∇
+
+    :endproperty
+
+    :property PublicHostname
+    :access public shared
+
+        ∇ r←get;ePath;c
+          ePath←'/latest/meta-data/public-hostname'
+          r←GetClient ePath
+        ∇
+
+    :endproperty
+
+    :property InstanceIdentity
+    :access public shared
+
+        ∇ r←get;ePath;c
+          ePath←'/latest/dynamic/instance-identity/document'
+          r←GetClient ePath
+        ∇
+
+    :endproperty
+ 
+ 
+    :property SecurityCredentials
+    :access public shared
+
+        ∇ r←get;ePath;c
+          ePath←'/latest/meta-data/identity-credentials/ec2/security-credentials/ec2-instance'
+          r←GetClient ePath
+        ∇
+
+    :endproperty
+   
+    :property Hostname
+    :access public shared
+
+        ∇ r←get;ePath;c
+          ePath←'/latest/meta-data/hostname'
+          r←GetClient ePath
+          r←( r≠⎕ucs 10)⊆r
+        ∇
+
+    :endproperty
+
+    :property SecurityGroups
+    :access public shared
+
+        ∇ r←get;ePath;c
+          ePath←'/latest/meta-data/security-groups'
+          r←GetClient ePath
+          r←( r≠⎕ucs 10)⊆r
+        ∇
+
+    :endproperty
+
+
+    ∇ Z←GetClient p;c;req;res
+      :Access public shared
+      c←##.##.##.Rumba.Core.NewClient 0
+      c.Host←Host
+      c.Port←80
+      c.Secure←0
+      req←##.##.##.Rumba.Core.NewRequest 0
+      req.URI←p
+      res←c ##.##.##.Rumba.Core.SendAndReceive req
+     
+      :Trap 0
+          Z←⎕JSON res.Content
+      :Else
+          Z←res.Content
+      :EndTrap
+    ∇
+
+:EndClass
