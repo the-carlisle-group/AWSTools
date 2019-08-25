@@ -7,9 +7,9 @@
     :access public instance
 
         ∇ r←get
-        
-        r←requiredHeaders
-
+         
+          r←requiredHeaders
+         
           :If 0≠≢body
               r,←⊂'Content-Length'
           :EndIf
@@ -92,29 +92,33 @@
         ∇
     :endproperty
 
-    :field private region←'us-east-1'
-    :property Region
-    :access public instance
-        ∇ r←get
-          r←region
-        ∇
-
-        ∇ set v
-          region←v.NewValue
-        ∇
-    :endproperty
-
-    :field private service←'s3'
-    :property Service
-    :access public instance
-        ∇ r←get
-          r←service
-        ∇
-
-        ∇ set v
-          service←v.NewValue
-        ∇
-    :endproperty
+    ⍝:field private region
+⍝    :property Region
+⍝    :access public instance
+⍝        ∇ r←get
+⍝          r←region
+⍝        ∇
+⍝
+⍝        ∇ set v
+⍝          region←v.NewValue
+⍝        ∇
+⍝    :endproperty
+⍝
+⍝    :field private service←''
+⍝    :property Service
+⍝    :access public instance
+⍝        ∇ r←get
+⍝          r←service
+⍝        ∇
+⍝
+⍝        ∇ set v;list
+⍝          list←'s3' 'dynamodb'
+⍝          :If ~(⊂v.NewValue)∊list
+⍝              ('Supported service types: ',¯2↓∊list,' ,')⎕SIGNAL 6
+⍝          :EndIf
+⍝          service←v.NewValue
+⍝        ∇
+⍝    :endproperty
 
     :field private headers←⍬
 
@@ -132,10 +136,11 @@
     :property HeaderNames
     :access public instance
         ∇ r←get;hh;h
-          r←RequiredHeaders[⍋RequiredHeaders]
+          r←RequiredHeaders[⍋(819⌶)¨RequiredHeaders]
         ∇
 
     :endproperty
+
 
     :property HeadersConical
     :access public instance
@@ -146,7 +151,7 @@
           :For h :In (819⌶)¨RequiredHeaders
               :Select h
               :Case 'host'
-                  hh,←⊂h,':'URI.Host
+                  hh,←⊂h,':',URI.Host
               :Case 'x-amz-content-sha256'
                   :If unsignedPayload
                       hh,←⊂h,':UNSIGNED-PAYLOAD'
@@ -164,7 +169,7 @@
          
           :EndFor
          
-          hh←hh[⍋hh]        ⍝ order alpha
+          hh←hh[⍋(819⌶)¨RequiredHeaders]        ⍝ order alpha
           r←∊hh,¨NewLine
         ∇
 
@@ -197,22 +202,25 @@
     :endproperty
 
 
-    ∇ Z←New
+    ∇ Z←New(sn rg)
       :Access public shared
-      Z←⎕NEW ⎕THIS
+      ⍝ sn = Service Name
+      ⍝ rg = Region
+      ⍝ Z  = Client Instance
+      Z←⎕NEW ⎕THIS(sn rg)
     ∇
 
-
-    ∇ const0
+    ∇ const0(sn rg)
       :Access public
       :Implements constructor
-     
       timeStamp←GetTimeStamp
       SetDefaultKeys ##.##.AcreConfig.ProjectFolder
       rumba←#.CarlisleGroup.Rumba.Core
       uri←##.##.URI.New
+      uri.HostService←sn
+      uri.HostRegion←rg
+      uri.HostPrefix←''
     ∇
-
 
       SetDefaultKeys←{
           p←⍵
@@ -229,8 +237,7 @@
       :Access public instance
      
       cr←HTTPMethod,NewLine
-      cr,←URI.Path
-      cr,←NewLine
+      cr,←URI.Path,NewLine
      
       :If 0≠≢URI.QueryParams
           qp←⍬
@@ -257,7 +264,7 @@
       :Access public instance
       ss←'AWS4-HMAC-SHA256',NewLine
       ss,←TimeStamp,NewLine
-      ss,←Date,'/',Region,'/',Service,'/aws4_request',NewLine
+      ss,←Date,'/',URI.HostRegion,'/',URI.HostService,'/aws4_request',NewLine
       ss,←Hash_SHA256 ConstructConicalRequest
       Z←ss
      
@@ -267,8 +274,8 @@
     ∇ Z←ConstructSignatureKey;dateKey;dateRegionKey;dateRegionServiceKey;signingKey
       :Access public instance
       dateKey←('AWS4',SecretKey)HMAC_SHA256 Date
-      dateRegionKey←(80 ⎕DR dateKey)HMAC_SHA256 Region
-      dateRegionServiceKey←(80 ⎕DR dateRegionKey)HMAC_SHA256 Service
+      dateRegionKey←(80 ⎕DR dateKey)HMAC_SHA256 URI.HostRegion
+      dateRegionServiceKey←(80 ⎕DR dateRegionKey)HMAC_SHA256 URI.HostService
       signingKey←(80 ⎕DR dateRegionServiceKey)HMAC_SHA256'aws4_request'
       Z←80 ⎕DR signingKey
     ∇
@@ -284,8 +291,8 @@
       :Access public instance
       Z←AccessKey
       Z,←,'/',Date
-      Z,←'/',Region
-      Z,←'/',Service
+      Z,←'/',URI.HostRegion
+      Z,←'/',URI.HostService
       Z,←'/aws4_request'
     ∇
 
@@ -304,7 +311,9 @@
       }
 
     ∇ Z←SendRequest signalError;h;c;r;res;xml
-      :Access public instance
+      :Access public instance 
+      ⍝ signalError : ⎕SIGNAL to http response not ≥200<300
+      timeStamp←GetTimeStamp
       h←⍬
       h,←⊂'Accept-Encoding' 'gzip'
       h,←⊂'Authorization'ConstructAuthorizationHeader
@@ -314,10 +323,11 @@
       :If 0≠≢Headers
           h,←Headers
       :EndIf
+      h←h[⍋(819⌶)¨↑¨h]
      
       rumba.##.Conga.X509Cert.LDRC←rumba.##.Conga
       c←rumba.NewClient''
-     
+      c.ClientTimeout←60000
       c.Host,←URI.Host
       c.Secure←URI.Scheme≡'https'
       c.Port←URI.Port
@@ -340,10 +350,12 @@
 
     ∇ Z←Clone
       :Access public instance
-      Z←(↑↑⎕CLASS ⎕THIS).New
-      Z.(AccessKey SecretKey Region)←⎕THIS.(AccessKey SecretKey Region)
-      Z.URI←(↑∊⎕CLASS URI).New
-      Z.URI.(Fragment Host Path Port QueryParams Scheme)←⎕THIS.URI.(Fragment Host Path Port QueryParams Scheme)
+      Z←(↑↑⎕CLASS ⎕THIS).New URI.(HostService HostRegion)
+      Z.(AccessKey SecretKey)←(accessKey secretKey)
+      Z.URI.(Fragment Port Scheme QueryParams Path)←URI.(Fragment Port Scheme  QueryParams Path)
+      Z.URI.HostRegion←URI.HostRegion
+      Z.URI.HostService←URI.HostService
+      Z.URI.HostPrefix←URI.HostPrefix
     ∇
 
 :EndClass

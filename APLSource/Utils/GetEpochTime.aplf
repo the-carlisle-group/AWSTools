@@ -1,4 +1,4 @@
- Z←GetEpochTime;⎕USING;dt;ts
+ Z←GetEpochTime;dt;ts
 
  :If 'W'=0 0⊃#.APLVersion
      ⎕USING←'System'

@@ -18,11 +18,9 @@
       :Access public
       :Implements constructor
       client←_client.Clone
-      client.URI.Host←'s3.amazonaws.com'
-      client.URI.Path←'/'
     ∇
 
-    ∇ Z←GetBuckets;res;xml;bc;b;tb
+    ∇ Z←GetBuckets;res;xml;bc;b;tb;bn;cd
       :Access public instance
       res←client.SendRequest 1
       CheckContentTypeXML res
@@ -33,9 +31,11 @@
       Z←⍬
      
       :For b :In bc
-          tb←##.##.Bucket.New ⎕THIS
-          tb.(Name CreationDate)←2⊃¨b
+          bn cd←2⊃¨b
+          tb←##.##.Bucket.New client bn
+          tb.CreationDate←cd
           Z,←tb
       :EndFor
     ∇
+
 :EndClass

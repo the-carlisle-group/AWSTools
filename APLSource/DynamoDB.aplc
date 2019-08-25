@@ -1,0 +1,40 @@
+:Class DynamoDB
+
+    :include Utils
+
+    :field private client
+
+    ∇ Z←New c
+      :Access public shared
+      ⍝ c   = Client object instance
+      Z←⎕NEW ⎕THIS c
+    ∇
+
+    ∇ const1 c
+      :Access public
+      :Implements constructor
+      client←c.Clone     
+    ∇
+
+    ∇ Z←ListTables;c2;data;res
+      :Access public instance
+     
+      c2←client.Clone
+      c2.HTTPMethod←'POST'
+      c2.Headers←('X-Amz-Target' 'DynamoDB_20120810.ListTables')('Content-Type' 'application/json')
+      c2.URI.QueryParams←⍬
+      c2.Body←'{}'
+      res←c2.SendRequest 1
+     
+      CheckContentTypeJSON res
+      data←⎕JSON res.Content
+     
+      :If 0≠data.⎕NC'LastEvaluatedTableName'
+          'ListTable paging not implemented,  More than 100 tables on server.'⎕SIGNAL 11
+      :EndIf
+
+      Z←data
+    ∇
+
+
+:EndClass

@@ -1,6 +1,14 @@
  RunTests←{
      _←##.Init
      r←1↓refs ⎕THIS
-     out←{⍵.⍎¨(⍵.⎕NL ¯3),¨⊂' 0'}¨r
-     out
+     S3.defaultBucket←'awstoolsdefault'
+     defaultRegion∘←'us-east-1'
+     out←{
+         list←⍵.⎕NL ¯3
+         err←⍵.⍎¨list,¨⊂' 0'
+         ⎕←err/list
+         ⎕←(⊂(⍕⍵),'.'),¨(err/list)
+         err
+     }¨r
+     1:_←out
  }

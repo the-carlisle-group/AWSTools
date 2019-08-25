@@ -1,7 +1,20 @@
  SignalError←{
-     xml←(⎕XML⍠('Whitespace' 'Preserve'))⍵.Content
-     em←↑xml[⍸xml[;1]∊⊂'Code';2]
-     msg←↑xml[⍸xml[;1]∊⊂'Message';2]
-     ⎕SIGNAL⊂('EN'res.StatusCode)('EM'em)('Message'msg)
+     ⍵.StatusCode=404:{
+         ⎕SIGNAL⊂('EN'⍵.StatusCode)('EM'⍵.ReasonPhrase)('Message'('URI: ',⍵.Request.URI))
+     }⍵
+
+     ⍵.ContentType.ContentType≡'application/xml':{
+         xml←(⎕XML⍠('Whitespace' 'Preserve'))⍵.Content
+         em←↑xml[⍸xml[;1]∊⊂'Code';2]
+         msg←↑xml[⍸xml[;1]∊⊂'Message';2]
+         ⎕SIGNAL⊂('EN'⍵.StatusCode)('EM'em)('Message'msg)
+     }⍵
+
+     ⍵.ContentType.ContentType≡'application/json':{
+         data←⎕JSON ⍵.Content
+         msg←{0=⍵.⎕NC'message':'' ⋄ ⍵.message}data
+         ⎕SIGNAL⊂('EN'⍵.StatusCode)('EM'data.__type)('Message'msg)
+     }⍵
+
 
  }

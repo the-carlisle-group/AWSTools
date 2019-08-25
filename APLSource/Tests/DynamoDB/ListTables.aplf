@@ -1,0 +1,6 @@
+ ListTables←{
+     c←##.##.Client.New'dynamodb'##.defaultRegion
+     db←##.##.DynamoDB.New c
+     t←db.ListTables
+     0
+ }

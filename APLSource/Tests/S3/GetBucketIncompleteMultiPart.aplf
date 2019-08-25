@@ -1,9 +1,8 @@
- DeleteObject←{
+ GetBucketIncompleteMultiPart←{
      c←##.##.Client.New's3'##.defaultRegion
      s←##.##.S3.Service.New c
      b←0⊃s.GetBuckets
-     _←PutObject''
-     ob←0⊃b.GetObjects'' 1
-     _←ob.Delete
+     obs←b.GetIncompleteMultiPart
+
      0
  }

@@ -1,5 +1,5 @@
  GetXMLTagValue←{
      i←⍺[;1]⍳⊂⍵
-     i=≢⍺:'XML tag does not exist.'⎕SIGNAL 6
+     i=≢⍺:⍵
      2⊃⍺[i;]
  }

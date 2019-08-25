@@ -5,13 +5,31 @@
     :field private scheme←'https'
     :field public QueryParams   ←⍬
     :field private fragment ←''
-    :field public Host←''
+    :field public HostRoot←'amazonaws.com'
+    :field public HostRegion←''
+    :field public HostService←''
+    :field public HostPrefix←''
+
     :field private port←443
 
     ∇ Z←New
       :Access public shared
       Z←⎕NEW ⎕THIS
     ∇
+    
+
+    :property Host
+    :access public instance
+        ∇ r←get
+         
+          r←''
+          r,←(0≠≢HostPrefix)/HostPrefix,'.'
+          r,←(0≠≢HostService)/HostService,'.'
+          r,←(0≠≢HostRegion)/HostRegion,'.'
+          r,←HostRoot
+         
+        ∇
+    :endproperty
 
     :property Fragment
     :access public instance
@@ -52,14 +70,6 @@
         ∇
     :endproperty
 
-    :property Authority
-    :access public instance
-
-        ∇ r←get
-             ⍝ r←Scheme,Host,Port,Path,Fragment
-          ⎕SIGNAL 11
-        ∇
-    :endproperty
 
     :property Query
     :access public instance
@@ -75,8 +85,8 @@
     :property URI
     :access public
         ∇ r←get
-          r←Scheme,'://',Host
-         
+          r←Scheme,'://'
+          r,←Host
           :If scheme port≢'https' 443
           :AndIf scheme port≢'http' 80
               r,←(':',⍕Port)

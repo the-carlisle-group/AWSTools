@@ -1,12 +1,9 @@
  PutObjectInFolders←{
-     c←##.##.Client.New
-     s←##.##.S3.Service.New c
-     b←##.##.S3.Bucket.New s
-     b.Name←'denmark2019-v002'
-     b.Region←'us-east-1'
+     c←##.##.Client.New's3'##.defaultRegion
+     b←##.##.S3.Bucket.New c defaultBucket
 
      ob←##.##.S3.Object.New b
-     ob.ACL←'public-read'
+⍝     ob.ACL←'public-read'
      ob.ContentType←'text/plain'
      ob.Value←'this is some text',⎕UCS 13 10
      ob.Value,←'Current Time: ',##.##.Utils.GetTimeStamp

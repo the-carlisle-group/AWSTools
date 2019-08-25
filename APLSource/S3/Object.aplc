@@ -22,6 +22,7 @@
     :field private version←''
     :field private acl←'private'
     :field private folder←''
+    :field public MultiPartBlockSize← 5×1048576
 
     :field public shared Readonly ACLList←'private'  'public-read'  'public-read-write'  'aws-exec-read' 'authenticated-read' 'bucket-owner-read'  'bucket-owner-full-control'
 
@@ -250,9 +251,13 @@
     :endproperty
 
 
-    ∇ Z←New s
+    ∇ uploads
+     
+    ∇
+
+    ∇ Z←New b
       :Access public shared
-      Z←⎕NEW ⎕THIS s
+      Z←⎕NEW ⎕THIS b
     ∇
 
     ∇ const0 s
@@ -260,10 +265,7 @@
       :Implements constructor
       bucket←s
       client←bucket.Client.Clone
-     
-      :If s.Name≢(≢s.Name)↑client.URI.Host
-          client.URI.Host←s.Name,'.',client.URI.Host
-      :EndIf
+      client.URI.Region←bucket.Region
     ∇
 
     ∇ {Z}←GetValue;res;c
@@ -313,7 +315,7 @@
       res←c.SendRequest 1
      
       contentType←res.ContentType.ContentType
-      processHeaders res.Headers
+      processHeaders res
      
       isRetreived←0
       value←⍬
@@ -337,9 +339,121 @@
       Z←res.StatusCode≠204
     ∇
 
-    ∇ Z←Put;res;c
+    ∇ {Z}←PutMultiPart cbPath;c;res;uploadId;block;startByte;stopByte;data;etag;xml;dataSize;state;cbNS;errMsg;cbExe;blockCount
       :Access public instance
-      ⍝ Z   : 0 if deleted
+      ⍝ cbPath  = text to callback for each state change
+      ⍝         = argument to function will be a namespace with
+      ⍝         = the callback will be executed in a thread.
+      ⍝         = all errors and results will be supressed!!!
+      ⍝ cbPath = ''     : no callback!
+      ⍝ ns←⎕ns''
+      ⍝ ns.blockCount   : total number of blocks
+      ⍝ ns.currentBlock : current block number
+      ⍝ ns.uploadSize   : byte size of upload
+      ⍝ ns.blockSize    : default size of blocks
+      ⍝ ns.isDone       : is the operation finished
+      ⍝ ns.message      : state message
+      ⍝ ns.uploadId     : amazon uploadid once initiated
+      ⍝ Z   = 0 / success; 1 / failure
+     
+      cbExe←⍎'{0::_←0 ⋄ {}',cbPath,' ⍵}'
+     
+      cbNS←⎕NS''
+      cbNS.blockCount←¯1
+      cbNS.currentBlock←0
+      cbNS.uploadSize←¯1
+      cbNS.blockSize←MultiPartBlockSize
+      cbNS.isDone←0
+      cbNS.message←''
+      cbNS.uploadId←''
+     
+      :If 80=⎕DR value
+          data←value
+      :Else
+          data←⎕UCS'UTF-8'⎕UCS value
+      :EndIf
+     
+      dataSize←≢data
+      cbNS.uploadSize←dataSize
+     
+      :If 0=≢Key
+          errMsg←'Key property is empty.'
+          cbNS.message←errMsg
+          cbNS.isDone←1
+          cbExe cbNS
+          ⎕SIGNAL⊂('EN' 6)('EM'errMsg)('Message' 'Key must be a valid object on S3.')
+      :EndIf
+     
+      cbNS.message←'Init multipart upload on S3.'
+      cbExe cbNS
+     
+      c←client.Clone
+      c.HTTPMethod←'POST'
+      c.URI.QueryParams←,⊂('uploads' '')
+      c.Headers←,⊂'Content-Type'ContentType
+      c.Headers,←⊂'x-amz-acl'acl
+     
+      :If ⍬≢metaData
+          c.Headers,←metaData
+      :EndIf
+     
+      res←c.SendRequest 1
+      Z←200≠res.StatusCode
+     
+      uploadId←(⎕XML res.Content)GetXMLTagValue'UploadId'
+      cbNS.uploadId←uploadId
+      cbExe cbNS
+     
+      etag←⍬
+      startByte←0
+      stopByte←0
+      blockCount←⌈dataSize÷MultiPartBlockSize
+      cbNS.blockCount←blockCount
+     
+      :For block :In ⍳blockCount
+     
+          cbNS.currentBlock←block
+          cbNS.message←'Uploading part ',(⍕1+block),' of ',(⍕blockCount),'.'
+          cbExe cbNS
+          startByte←block×MultiPartBlockSize
+          stopByte←startByte+MultiPartBlockSize
+     
+          :If stopByte>dataSize
+              stopByte←startByte+dataSize-startByte
+          :EndIf
+     
+          c←client.Clone
+          c.HTTPMethod←'PUT'
+          c.URI.QueryParams←,('partNumber'(⍕1+block))('uploadId'uploadId)
+          c.Body←startByte↓stopByte↑data
+          res←c.SendRequest 1
+          Z←200≠res.StatusCode
+          etag,←⊂((0⊃¨res.Headers)⍳⊂'etag')1⊃res.Headers
+     
+      :EndFor
+     
+      cbNS.message←'Sending S3 complete upload.'
+      cbExe cbNS
+      c←client.Clone
+      c.HTTPMethod←'POST'
+      c.URI.QueryParams←,⊂('uploadId'uploadId)
+     
+      xml←1 4⍴0 'CompleteMultipartUpload' ''(0 2⍴'')
+      xml⍪←⊃↑,/etag{(1 'Part' ''(0 2⍴''))(2 'PartNumber'⍵(0 2⍴''))(2 'ETag'⍺'')}¨1++⍳≢etag
+      c.Body←⎕XML xml
+     
+      res←c.SendRequest 1
+      Z←'CompleteMultipartUploadResult'≢↑(⎕XML res.Content)[0;1]
+     
+      cbNS.isDone←1
+      cbNS.message←Z⊃'File Ready' 'Error'
+      cbExe cbNS
+    ∇
+
+
+    ∇ {Z}←Put;res;c
+      :Access public instance
+      ⍝ Z   = 0 / success; 1 / failure
      
       :If 0=≢Key
           ⎕SIGNAL⊂('EN' 6)('EM' 'Key property is empty.')('Message' 'Key must be a valid object on S3.')
@@ -367,6 +481,12 @@
 
     ∇ Z←GeneratePreSignedGet seconds;cr;ss;camz;out;sig;exp;c
       :Access public instance
+     
+      :If 0=80|⎕DR seconds
+      :OrIf seconds<1
+      :OrIf seconds>86400
+          'Second argument must be between 1-86400.'⎕SIGNAL 6
+      :EndIf
      
       exp←seconds
      

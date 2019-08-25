@@ -1,9 +1,6 @@
  PutBucket←{
-     c←##.##.Client.New
-     s←##.##.S3.Service.New c
-     b←##.##.S3.Bucket.New s
-     b.Name←'test-',' '~⍨∊⍕⎕TS
-     b.Region←'us-east-1'
+     c←##.##.Client.New's3'##.defaultRegion
+     b←##.##.S3.Bucket.New c'badname'
      e←b.Exists
      e≠0:1
      _←b.Create

@@ -1,0 +1,12 @@
+ PutObjectMultiPart←{
+     c←##.##.Client.New's3'##.defaultRegion
+     s←##.##.S3.Service.New c
+     b←##.##.S3.Bucket.New c defaultBucket
+     ob←##.##.S3.Object.New b
+     ob.ContentType←'text/plain'
+     ob.Value←13002300⍴'this is some text',⎕UCS 13 10
+     ob.Key←'test_',(' '~⍨∊⍕⎕TS),'.txt'
+     ok←ob.PutMultiPart
+     _←ob.Delete
+     0
+ }

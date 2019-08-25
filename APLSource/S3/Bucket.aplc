@@ -2,7 +2,6 @@
 
     :include ##.Utils
 
-    :field private service
     :field private name←''
     :field private creationDate←''
     :field private isTruncated ←0
@@ -15,6 +14,10 @@
     :access public instance
         ∇ r←get
           r←client
+        ∇
+
+        ∇ set v
+          client←v.NewClient
         ∇
     :Endproperty
 
@@ -33,7 +36,6 @@
         ∇
     :Endproperty
 
-
     :property NextContinuationToken
     :access public instance
         ∇ r←get
@@ -48,6 +50,7 @@
         ∇
         ∇ set v
           name←v.NewValue
+          client.URI.HostPrefix←name
         ∇
     :endproperty
 
@@ -61,16 +64,20 @@
         ∇
     :endproperty
 
-    ∇ Z←New s
+    ∇ Z←New(c n)
       :Access public shared
-      Z←⎕NEW ⎕THIS s
+      ⍝ s   = service instance
+      ⍝ bn  = new/existing bucket name
+      Z←⎕NEW ⎕THIS(c n)
     ∇
 
-    ∇ const0 s
+    ∇ const0(c n)
       :Access public
       :Implements constructor
-      service←s
-      client←service.Client.Clone
+      name←n
+      client←c.Clone
+      client.URI.HostPrefix←n
+      client.URI.HostRegion←Region
     ∇
 
     ∇ Z←GetObjects(startAfterId maxKeys);res;xml;bc;b;tb;params;pi
@@ -105,12 +112,13 @@
       xml←((xml[;1]∊⊂'Contents')⍳1)↓xml
       bc←(~(xml[;1]∊⊂'Contents'))⊆↓xml[;1 2]
      
-      pi←'Key' 'LastModified' 'ETag' 'Size' 'StorageClass' 'ID' 'DisplayName'
+      pi←'Key' 'LastModified' 'ETag' 'Size' 'StorageClass' 'ID'
       pi←(0⊃¨0⊃bc)⍳pi
      
       :For b :In bc
           tb←##.##.Object.New ⎕THIS
-          tb.(Key LastModified ETag Size StorageClass OwnerID OwnerDisplayName)←1⊃¨b[pi]
+          tb.(Key LastModified ETag Size StorageClass OwnerID)←1⊃¨b[pi]
+          tb.OwnerDisplayName←xml GetXMLTagValue'DisplayName' ''
           Z,←tb
       :EndFor
      
@@ -154,12 +162,13 @@
      
     ∇
 
-    ∇ Z←getObjects params;res
+    ∇ Z←getObjects params;res;c2
       :Access private
-      client.URI.Host←Name,'.s3.amazonaws.com'
+      c2←client.Clone
       client.URI.Path←'/'
       client.URI.QueryParams←('list-type' '2')('fetch-owner' 'true')
-      client.Region←Region
+      client.URI.Region←Region
+     
       :If 0≠≢params
           client.URI.QueryParams,←params
       :EndIf
@@ -189,10 +198,7 @@
     ∇ Z←getBucketRegion;res;xml;v;c2
      
       c2←client.Clone
-      c2.URI.Host←Name,'.s3.amazonaws.com'
-      c2.URI.Path←'/'
       c2.URI.QueryParams←,⊂'location' ''
-     
       res←c2.SendRequest 0
      
       CheckContentTypeXML res
@@ -204,6 +210,16 @@
           :Return
       :EndIf
      
+      :If xml[0;1]≡⊂'Error'
+      :AndIf res.StatusCode≥400
+          :If xml[1;2]≡⊂'NoSuchBucket'
+              Z←client.URI.HostRegion
+              :Return
+          :Else
+              SignalError res
+          :EndIf
+      :EndIf
+     
       v←2⊃xml[xml[;1]⍳⊂'LocationConstraint';]
      
       :If 0=≢v
@@ -211,16 +227,14 @@
       ⍝US East(N.Virginia),
           Z←'us-east-1'
       :Else
-          stop
+          Z←v
       :EndIf
     ∇
 
     ∇ Z←Exists;c2;res;xml
       :Access public instance
       c2←client.Clone
-      c2.URI.Host←Name,'.s3.amazonaws.com'
-      c2.URI.Path←'/'
-      c2.URI.QueryParams←⍬
+     
       :Trap 0
           res←c2.SendRequest 1
           Z←1
@@ -234,9 +248,6 @@
       ⍝ Z   : dummy
       c2←client.Clone
       c2.HTTPMethod←'PUT'
-      c2.URI.Host←Name,'.s3.amazonaws.com'
-      c2.URI.Path←'/'
-      c2.URI.QueryParams←⍬
       res←c2.SendRequest 1
       Z←0
     ∇
@@ -246,15 +257,39 @@
       ⍝ Z   : dummy
       c2←client.Clone
       c2.HTTPMethod←'DELETE'
-      c2.URI.Host←Name,'.s3.amazonaws.com'
-      c2.URI.Path←'/'
-      c2.URI.QueryParams←⍬
       res←c2.SendRequest 1
      
       :If 204≠res.StatusCode
           SignalError 204 'Error deleting bucket.'
       :EndIf
      
+      Z←0
+    ∇
+
+    ∇ Z←GetIncompleteMultiPart;c2;res;xml
+      :Access public instance
+      ⍝ return up to 1000.  Query until 0 count
+      c2←client.Clone
+      c2.HTTPMethod←'GET'
+      c2.URI.QueryParams←,⊂('uploads' '')
+      res←c2.SendRequest 1
+      xml←⎕XML res.Content
+
+      :If ~(⊂'Key')∊xml[;1]
+          Z←⍬
+      :Else
+          Z←{ns←⎕NS'' ⋄ ns.(Key UploadId Initiator)←↑¨⍵ ⋄ ns}¨(xml[;1]∊'Key' 'UploadId' 'Initiator')⊂↓xml[;2 3]
+      :EndIf
+    ∇
+
+    ∇ Z←DeleteIncompleteObject ns;c2;res;xml
+    ⍝ delete incomplete multuparl
+      :Access public instance
+      c2←client.Clone
+      c2.HTTPMethod←'DELETE'
+      c2.URI.QueryParams←,⊂('uploadId'ns.UploadId)
+      c2.URI.Path←'/',ns.Key
+      res←c2.SendRequest 1
       Z←0
     ∇
 :EndClass

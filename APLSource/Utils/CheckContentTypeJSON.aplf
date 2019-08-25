@@ -1,0 +1,5 @@
+ CheckContentTypeJSON←{
+     ⍵.ContentType.ContentType≡'application/json':_←0
+     ⎕SIGNAL⊂('EN' 6)('EM' 'Invalid Content-Type returned.')('Message' 'Content-Type should be application/json.')
+
+ }

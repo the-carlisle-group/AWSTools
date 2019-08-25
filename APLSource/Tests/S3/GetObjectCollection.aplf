@@ -1,9 +1,7 @@
  GetObjectCollection←{
-     ⎕←⎕TS
-     c←##.##.Client.New
+     c←##.##.Client.New's3'##.defaultRegion
      s←##.##.S3.Service.New c
      b←0⊃s.GetBuckets
      ob←b.GetAllObjects
-     ⎕←⎕TS
      0
  }

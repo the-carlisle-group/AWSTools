@@ -1,9 +1,7 @@
  GetObjectPreSignedURI←{
-     c←##.##.Client.New
-     s←##.##.S3.Service.New c
-     b←##.##.S3.Bucket.New s
-     b.Name←'denmark2019-v002'
-     b.Region←'us-east-1'
+     c←##.##.Client.New's3'##.defaultRegion
+     bn←##.##.Utils.GetTimeStamp
+     b←##.##.S3.Bucket.New c defaultBucket
      ob←##.##.S3.Object.New b
      ob.ContentType←'text/plain'
      ob.Value←'this is some text',⎕UCS 13 10
@@ -11,6 +9,6 @@
      ob.Key←'test_',(' '~⍨∊⍕⎕TS),'.txt'
      ok←ob.Put
      psu←ob.GeneratePreSignedGet 60
-     ⎕SE.UCMD'open ',psu
+     _←⎕SE.UCMD'open ',psu
      0
  }
