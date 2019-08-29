@@ -135,8 +135,8 @@
 
     :property HeaderNames
     :access public instance
-        ∇ r←get;hh;h
-          r←RequiredHeaders[⍋(819⌶)¨RequiredHeaders]
+        ∇ r←get;hh;h       
+          r←RequiredHeaders[⍋lcase¨RequiredHeaders]
         ∇
 
     :endproperty
