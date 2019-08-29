@@ -121,6 +121,9 @@
         ∇
 
         ∇ set v
+          :If 1≠≡v.NewValue
+              'S3 Object value must be a simple string.'⎕SIGNAL 6
+          :EndIf
           value←v.NewValue
         ∇
 

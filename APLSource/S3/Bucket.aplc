@@ -274,7 +274,7 @@
       c2.URI.QueryParams←,⊂('uploads' '')
       res←c2.SendRequest 1
       xml←⎕XML res.Content
-
+     
       :If ~(⊂'Key')∊xml[;1]
           Z←⍬
       :Else
@@ -285,6 +285,8 @@
     ∇ Z←DeleteIncompleteObject ns;c2;res;xml
     ⍝ delete incomplete multuparl
       :Access public instance
+      Z←⍬
+      →((ns≡0)∨0=≢ns)/0
       c2←client.Clone
       c2.HTTPMethod←'DELETE'
       c2.URI.QueryParams←,⊂('uploadId'ns.UploadId)
