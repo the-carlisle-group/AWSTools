@@ -17,7 +17,7 @@
         ∇
 
         ∇ set v
-          client←v.NewClient
+          client←v.NewValue
         ∇
     :Endproperty
 

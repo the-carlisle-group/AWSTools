@@ -1,4 +1,5 @@
  RunTests←{
+     _←⎕SE.acre.OpenProject ##.AcreConfig.ProjectFolder,'../DyalogDCL'
      _←##.Init
      r←1↓refs ⎕THIS
      S3.defaultBucket←'awstoolsdefault'

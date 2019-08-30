@@ -1,9 +1,0 @@
- NewClient←{
-     ⍝#.CarlisleGroup.Rumba.Conga.X509Cert.LDRC←#.CarlisleGroup.Rumba.Conga
-     c←##.Rumba.Core.NewClient 0
-     c.Host←'s3.amazonaws.com'
-     c.Port←80⍝443
-     c.Secure←0
-     r←##.Rumba.Core.NewRequest''
-     c r
- }
