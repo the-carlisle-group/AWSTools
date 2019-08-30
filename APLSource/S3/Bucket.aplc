@@ -246,8 +246,23 @@
     ∇ {Z}←Create;c2;res;xml
       :Access public instance
       ⍝ Z   : dummy
+
       c2←client.Clone
+      
+      :if Region ≢c2.URI.HostRegion
+  ⎕signal ⊂('EN' 11) ('EM' 'AWS Client and S3 bucket region mismatch.  Must be the same.')
+      :endif
+
       c2.HTTPMethod←'PUT'
+      
+      ⍝ Location Constraint only required if not in us-east-1!
+      :If Region≢'us-east-1'
+          c2.ContentType←'text/plain'
+          xml←1 4⍴0 'CreateBucketConfiguration' ''(1 2⍴'xmlns' 'http://s3.amazonaws.com/doc/2006-03-01/')
+          xml⍪←1 'LocationConstraint'Region(0 2⍴'')
+          c2.Body←⎕XML xml
+      :EndIf
+    
       res←c2.SendRequest 1
       Z←0
     ∇

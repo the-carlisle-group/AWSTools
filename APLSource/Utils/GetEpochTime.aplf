@@ -1,6 +1,6 @@
  Z←GetEpochTime;dt;ts
 
- :If 'W'=0 0⊃#.APLVersion
+ :If 'W'=0 0⊃APLVersion
      ⎕USING←'System'
      dt←⎕NEW DateTime(1970 1 1 0 0 0 0 DateTimeKind.Utc)
      Z←⌊(DateTime.Now.ToUniversalTime-dt).TotalSeconds

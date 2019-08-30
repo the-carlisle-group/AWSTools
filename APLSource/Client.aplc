@@ -325,13 +325,11 @@
       :EndIf
       h←h[⍋(819⌶)¨↑¨h]
      
-      rumba.##.Conga.X509Cert.LDRC←rumba.##.Conga
       c←rumba.NewClient''
       c.ClientTimeout←60000
       c.Host,←URI.Host
       c.Secure←URI.Scheme≡'https'
       c.Port←URI.Port
-      c.X509←⎕NEW rumba.##.Conga.X509Cert
       r←rumba.NewRequest''
      
       r.Method←HTTPMethod
