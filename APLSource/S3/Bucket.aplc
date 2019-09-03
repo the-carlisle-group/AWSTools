@@ -215,6 +215,8 @@
           :If xml[1;2]≡⊂'NoSuchBucket'
               Z←client.URI.HostRegion
               :Return
+          :ElseIf
+              ⎕SIGNAL⊂('EN'res.StatusCode)('EM'(2⊃xml[1;]))('Message' 'Does the bucket exist or belong to someone else?')
           :Else
               SignalError res
           :EndIf
@@ -246,15 +248,15 @@
     ∇ {Z}←Create;c2;res;xml
       :Access public instance
       ⍝ Z   : dummy
-
+     
       c2←client.Clone
-      
-      :if Region ≢c2.URI.HostRegion
-  ⎕signal ⊂('EN' 11) ('EM' 'AWS Client and S3 bucket region mismatch.  Must be the same.')
-      :endif
-
+     
+      :If Region≢c2.URI.HostRegion
+          ⎕SIGNAL⊂('EN' 11)('EM' 'AWS Client and S3 bucket region mismatch.  Must be the same.')
+      :EndIf
+     
       c2.HTTPMethod←'PUT'
-      
+     
       ⍝ Location Constraint only required if not in us-east-1!
       :If Region≢'us-east-1'
           c2.ContentType←'text/plain'
@@ -262,7 +264,7 @@
           xml⍪←1 'LocationConstraint'Region(0 2⍴'')
           c2.Body←⎕XML xml
       :EndIf
-    
+     
       res←c2.SendRequest 1
       Z←0
     ∇
