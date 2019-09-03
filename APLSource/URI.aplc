@@ -6,8 +6,8 @@
     :field public QueryParams   ←⍬
     :field private fragment ←''
     :field public HostRoot←'amazonaws.com'
-    :field public HostRegion←''
-    :field public HostService←''
+    :field private hostRegion←''
+    :field private hostService←''
     :field public HostPrefix←''
 
     :field private port←443
@@ -16,7 +16,28 @@
       :Access public shared
       Z←⎕NEW ⎕THIS
     ∇
-    
+
+    :property HostRegion
+    :access public instance
+        ∇ r←get
+          r←hostRegion
+        ∇
+
+        ∇ set v
+          hostRegion←(819⌶)v.NewValue
+        ∇
+    :endproperty
+
+    :property HostService
+    :access public instance
+        ∇ r←get
+          r←hostService
+        ∇
+
+        ∇ set v
+          hostService←(819⌶)v.NewValue
+        ∇
+    :endproperty
 
     :property Host
     :access public instance
