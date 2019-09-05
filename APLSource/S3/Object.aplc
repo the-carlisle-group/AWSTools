@@ -29,12 +29,18 @@
     :field private metaData←⍬
     :property MetaData
     :access public instance
-        ∇ r←get
-          r←metaData
+        ∇ r←get;prefix;pl
+          prefix←'x-amz-meta-'
+          pl←≢prefix
+          r←↓⍉{⊃(pl↓¨⍵[;0])(⍵[;1])}⊃metaData    ⍝ UGLY... too lazy to rewrite right now
         ∇
 
-        ∇ set v
-          metaData←v.NewValue
+        ∇ set v;head;value;prefix;pl
+          prefix←'x-amz-meta-'
+          pl←≢prefix
+          head value←↓⍉⊃v.NewValue
+          head←{((prefix≢pl↑⍵)/prefix),⍵}¨(819⌶)¨head
+          metaData←↓⍉⊃head value
         ∇
     :endproperty
 
@@ -204,8 +210,13 @@
     :property   LastModified
     :access public
 
-        ∇ r←get
-          r←lastModified
+        ∇ r←get;lm
+          lm←lastModified
+          :If (↑lm)∊⎕D
+              r←( ¯5↓lm~'-:'),'Z'
+          :Else
+              r←GetTimeStampFromHttpDate lm
+          :EndIf          
         ∇
 
         ∇ set v
@@ -300,7 +311,7 @@
      
           metaIndex←⍸∨/('x-amz-meta-')⍷⊃0⊃¨⍵.Headers
           0=≢metaIndex:_←0
-          metaData←res.Headers[metaIndex]
+          metaData∘←res.Headers[metaIndex]
           1:_←0
       }
 

@@ -80,7 +80,8 @@
       client.URI.HostRegion←Region
     ∇
 
-    ∇ Z←GetObjects(startAfterId maxKeys);res;xml;bc;b;tb;params;pi
+
+    ∇ Z←GetObjects(startAfterId maxKeys prefix);res;xml;bc;b;tb;params;pi
       :Access public instance
      
       isTruncated←0
@@ -95,6 +96,10 @@
      
       :If 0≠maxKeys
           params,←⊂'max-keys'(⍕maxKeys)
+      :EndIf
+     
+      :If 0≠≢prefix
+          params,←⊂'prefix'prefix
       :EndIf
      
       xml←getObjects params
@@ -124,7 +129,7 @@
      
     ∇
 
-    ∇ Z←GetAllObjects;res;xml;bc;b;tb;cont;params
+    ∇ Z←GetAllObjects;res;xml;bc;b;tb;cont;params;keyIndex
       :Access public instance
      
       isTruncated←0
@@ -147,12 +152,14 @@
           :If IsTruncated
               nextContinuationToken←2⊃xml[xml[;1]⍳⊂'NextContinuationToken';]
           :EndIf
-     
-          bc←(xml[;0]=2)⊆↓xml
+
+xml←      (xml[;1]⍳⊆'Contents')↓xml     
+          bc←(xml[;0]≠1)⊆↓xml
      
           :For b :In bc
+keyIndex← (⊃                                  b)[;1]⍳'Key' 'LastModified' 'ETag' 'Size' 'StorageClass'
               tb←##.##.Object.New ⎕THIS
-              tb.(Key LastModified ETag Size StorageClass)←2⊃¨b
+              tb.(Key LastModified ETag Size StorageClass)←(⊃b)[keyIndex ;2]
               Z,←tb
           :EndFor
      
