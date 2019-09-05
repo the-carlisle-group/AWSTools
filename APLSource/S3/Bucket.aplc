@@ -152,14 +152,14 @@
           :If IsTruncated
               nextContinuationToken←2⊃xml[xml[;1]⍳⊂'NextContinuationToken';]
           :EndIf
-
-xml←      (xml[;1]⍳⊆'Contents')↓xml     
+     
+          xml←(xml[;1]⍳⊆'Contents')↓xml
           bc←(xml[;0]≠1)⊆↓xml
      
           :For b :In bc
-keyIndex← (⊃                                  b)[;1]⍳'Key' 'LastModified' 'ETag' 'Size' 'StorageClass'
+              keyIndex←(⊃b)[;1]⍳'Key' 'LastModified' 'ETag' 'Size' 'StorageClass'
               tb←##.##.Object.New ⎕THIS
-              tb.(Key LastModified ETag Size StorageClass)←(⊃b)[keyIndex ;2]
+              tb.(Key LastModified ETag Size StorageClass)←(⊃b)[keyIndex;2]
               Z,←tb
           :EndFor
      
@@ -222,7 +222,7 @@ keyIndex← (⊃                                  b)[;1]⍳'Key' 'LastModified' 
           :If xml[1;2]≡⊂'NoSuchBucket'
               Z←client.URI.HostRegion
               :Return
-          :ElseIf
+          :ElseIf res.StatusCode=403
               ⎕SIGNAL⊂('EN'res.StatusCode)('EM'(2⊃xml[1;]))('Message' 'Does the bucket exist or belong to someone else?')
           :Else
               SignalError res
