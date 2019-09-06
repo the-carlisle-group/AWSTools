@@ -330,16 +330,15 @@
       timeStamp←GetTimeStamp
       h←⍬
      
-      :If 0≠≢Token
-      :AndIf URI.HostService≡'s3'
-          h,←⊂'x-amz-security-token'token
-          requiredHeaders,←⊂'x-amz-security-token'
-      :EndIf
-     
       h,←⊂'Accept-Encoding' 'gzip'
       h,←⊂'Authorization'ConstructAuthorizationHeader
       h,←⊂'x-amz-content-sha256'(Hash_SHA256 Body)
       h,←⊂'x-amz-date'TimeStamp
+     
+      :If 0≠≢Token
+      :AndIf URI.HostService≡'s3'
+          h,←⊂'x-amz-security-token'token
+      :EndIf
      
       :If 0≠≢Headers
           h,←Headers
