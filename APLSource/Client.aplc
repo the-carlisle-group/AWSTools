@@ -10,6 +10,10 @@
          
           r←requiredHeaders
          
+          :If 0≠≢token
+              r,←⊂'x-amz-security-token'
+          :EndIf 
+          
           :If 0≠≢body
               r,←⊂'Content-Length'
           :EndIf
