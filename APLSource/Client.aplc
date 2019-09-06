@@ -10,10 +10,10 @@
          
           r←requiredHeaders
          
-          :If 0≠≢token
+          :If includeTokenHeader
               r,←⊂'x-amz-security-token'
-          :EndIf 
-          
+          :EndIf
+         
           :If 0≠≢body
               r,←⊂'Content-Length'
           :EndIf
@@ -328,21 +328,25 @@
           (¯1↓∊h,¨';')
       }
 
+
+    :field privaet includeTokenHeader←0
+
     ∇ Z←SendRequest signalError;h;c;r;res;xml
       :Access public instance
-      ⍝ signalError : ⎕SIGNAL to http response not ≥200<300
+      ⍝ signalError : ⎕SIGNAL to http response not 200≥<300
       timeStamp←GetTimeStamp
       h←⍬
+     
+      :If 0≠≢Token
+      :AndIf URI.HostService≡'s3'
+          includeTokenHeader←1
+          h,←⊂'x-amz-security-token'token
+      :EndIf
      
       h,←⊂'Accept-Encoding' 'gzip'
       h,←⊂'Authorization'ConstructAuthorizationHeader
       h,←⊂'x-amz-content-sha256'(Hash_SHA256 Body)
       h,←⊂'x-amz-date'TimeStamp
-     
-      :If 0≠≢Token
-      :AndIf URI.HostService≡'s3'
-          h,←⊂'x-amz-security-token'token
-      :EndIf
      
       :If 0≠≢Headers
           h,←Headers
