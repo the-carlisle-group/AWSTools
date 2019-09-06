@@ -213,10 +213,10 @@
         ∇ r←get;lm
           lm←lastModified
           :If (↑lm)∊⎕D
-              r←( ¯5↓lm~'-:'),'Z'
+              r←(¯5↓lm~'-:'),'Z'
           :Else
               r←GetTimeStampFromHttpDate lm
-          :EndIf          
+          :EndIf
         ∇
 
         ∇ set v
@@ -515,6 +515,11 @@
       c.URI.QueryParams,←⊂('X-Amz-Date'c.TimeStamp)
       c.URI.QueryParams,←⊂('X-Amz-Expires'(⍕exp))
       c.URI.QueryParams,←⊂('X-Amz-SignedHeaders' 'host')
+     
+      :If 0≠≢c.Token
+          c.URI.QueryParams,←⊂('x-amz-security-token'c.Token)
+      :EndIf
+     
      
       out←c.URI.URI
       out,←'&X-Amz-Signature=',c.ConstructSignature
