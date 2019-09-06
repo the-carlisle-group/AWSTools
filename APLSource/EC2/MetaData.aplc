@@ -23,8 +23,8 @@
         ∇
 
     :endproperty
-    
-      
+
+
     :property LocalHostname
     :access public shared
 
@@ -54,8 +54,8 @@
         ∇
 
     :endproperty
- 
- 
+
+
     :property SecurityCredentials
     :access public shared
 
@@ -65,25 +65,48 @@
         ∇
 
     :endproperty
-   
+
     :property Hostname
     :access public shared
 
         ∇ r←get;ePath;c
           ePath←'/latest/meta-data/hostname'
           r←GetClient ePath
-          r←( r≠⎕ucs 10)⊆r
+          r←(r≠⎕UCS 10)⊆r
         ∇
 
     :endproperty
 
-    :property SecurityGroups
+    :property IAM
     :access public shared
 
-        ∇ r←get;ePath;c
-          ePath←'/latest/meta-data/security-groups'
+        ∇ z←get;ePath;c;uri;r;rolename
+          z←⍬
+          ePath←'/latest/meta-data/iam/'
           r←GetClient ePath
-          r←( r≠⎕ucs 10)⊆r
+          r←(r≠⎕UCS 10)⊆r
+          →(0=≢r)/0  
+
+          z←⎕NS''
+          
+          :For uri :In r
+         
+              :If '/'=¯1↑uri
+                  (uri~'/-')z.⎕NS ⍬
+                  ePath←'/latest/meta-data/iam/',uri
+                  r←GetClient ePath
+                  rolename←r
+                  ePath←'/latest/meta-data/iam/',uri,rolename
+                  r←GetClient ePath
+                  'role'z.securitycredentials.⎕NS r         
+              :Else
+                  ePath←'/latest/meta-data/iam/',uri
+                  r←GetClient ePath
+                  uri z.⎕NS r
+              :EndIf
+         
+          :EndFor
+         
         ∇
 
     :endproperty

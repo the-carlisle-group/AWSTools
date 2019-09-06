@@ -40,6 +40,18 @@
         ∇
     :EndProperty
 
+    :field private token←''
+    :Property Token
+    :access public instance
+        ∇ r←get
+          r←token
+        ∇
+
+        ∇ set v
+          token←v.NewValue
+        ∇
+    :EndProperty
+
     :field private accessKey
     :Property AccessKey
     :access public instance
@@ -135,7 +147,7 @@
 
     :property HeaderNames
     :access public instance
-        ∇ r←get;hh;h       
+        ∇ r←get;hh;h
           r←RequiredHeaders[⍋lcase¨RequiredHeaders]
         ∇
 
@@ -162,6 +174,8 @@
                   hh,←⊂h,':',TimeStamp
               :Case 'content-length'
                   hh,←⊂h,':',⍕≢body
+              :Case 'x-amz-security-token'
+                  hh,←⊂h,':',token
               :Else
                   hi←((819⌶)¨0⊃¨Headers)⍳⊂h
                   hh,←⊂h,':',hi 1⊃Headers
@@ -311,10 +325,17 @@
       }
 
     ∇ Z←SendRequest signalError;h;c;r;res;xml
-      :Access public instance 
+      :Access public instance
       ⍝ signalError : ⎕SIGNAL to http response not ≥200<300
       timeStamp←GetTimeStamp
       h←⍬
+     
+      :If 0≠≢Token
+      :AndIf URI.HostService≡'s3'
+          h,←⊂'x-amz-security-token'token
+          requiredHeaders,←⊂'x-amz-security-token'
+      :EndIf
+     
       h,←⊂'Accept-Encoding' 'gzip'
       h,←⊂'Authorization'ConstructAuthorizationHeader
       h,←⊂'x-amz-content-sha256'(Hash_SHA256 Body)
@@ -349,8 +370,8 @@
     ∇ Z←Clone
       :Access public instance
       Z←(↑↑⎕CLASS ⎕THIS).New URI.(HostService HostRegion)
-      Z.(AccessKey SecretKey)←(accessKey secretKey)
-      Z.URI.(Fragment Port Scheme QueryParams Path)←URI.(Fragment Port Scheme  QueryParams Path)
+      Z.(AccessKey SecretKey Token)←(accessKey secretKey token)
+      Z.URI.(Fragment Port Scheme QueryParams Path)←URI.(Fragment Port Scheme QueryParams Path)
       Z.URI.HostRegion←URI.HostRegion
       Z.URI.HostService←URI.HostService
       Z.URI.HostPrefix←URI.HostPrefix
