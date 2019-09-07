@@ -84,6 +84,8 @@
     ∇ Z←GetObjects(startAfterId maxKeys prefix);res;xml;bc;b;tb;params;pi
       :Access public instance
      
+      Z←⍬
+     
       isTruncated←0
       contToken←''
       nextContinuationToken←''
@@ -110,9 +112,6 @@
       :If IsTruncated
           nextContinuationToken←2⊃xml[xml[;1]⍳⊂'NextContinuationToken';]
       :EndIf
-     
-      Z←⍬
-     
      
       xml←((xml[;1]∊⊂'Contents')⍳1)↓xml
       bc←(~(xml[;1]∊⊂'Contents'))⊆↓xml[;1 2]
