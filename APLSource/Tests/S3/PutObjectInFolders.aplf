@@ -1,6 +1,6 @@
  PutObjectInFolders←{
-     c←##.##.Client.New's3'##.defaultRegion
-     b←##.##.S3.Bucket.New c defaultBucket
+     c←⍵
+     b←##.##.S3.Bucket.New c ##._defaultBucket
 
      ob←##.##.S3.Object.New b
 ⍝     ob.ACL←'public-read'
@@ -13,7 +13,7 @@
      logLink←ob.URI
 
      ob←##.##.S3.Object.New b
-     ob.ACL←'public-read'
+⍝     ob.ACL←'public-read'
      ob.ContentType←'application/json'
      ob.Value←⎕JSON ⎕DMX
      ob.Folder←'errors'
@@ -31,7 +31,7 @@
      html,←'</body></html>'
 
      ob←##.##.S3.Object.New b
-     ob.ACL←'public-read'
+⍝     ob.ACL←'public-read'
      ob.ContentType←'text/html'
      ob.Value←html
      ob.Key←'page_',(' '~⍨∊⍕⎕TS),'.html'

@@ -1,12 +1,15 @@
  RunTests←{
      _←⎕SE.acre.OpenProject ##.AcreConfig.ProjectFolder,'../DyalogDCL'
-     _←##.Init
+     _←##.Init''
      r←1↓refs ⎕THIS
-     S3.defaultBucket←'awstoolsdefault'
-     defaultRegion∘←'us-east-1'
-     out←{
+     ⎕THIS._defaultBucket←'d19apps'
+     client←getClient's3' 'us-east-2'
+     out←client{
          list←⍵.⎕NL ¯3
-         err←⍵.⍎¨list,¨⊂' 0'
+         err←⍵{
+             exp←'⍺.',⍵,' client'
+             ⍎exp
+         }¨list
          ⎕←err/list
          ⎕←(⊂(⍕⍵),'.'),¨(err/list)
          err

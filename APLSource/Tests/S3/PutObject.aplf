@@ -1,7 +1,6 @@
  PutObject←{
-     c←##.##.Client.New's3'##.defaultRegion
-     s←##.##.S3.Service.New c
-     b←##.##.S3.Bucket.New c defaultBucket
+     c←⍵
+     b←##.##.S3.Bucket.New c ##._defaultBucket
      ob←##.##.S3.Object.New b
 ⍝     ob.ACL←'public-read'
      ob.ContentType←'text/plain'
@@ -25,7 +24,7 @@
      ob.Value←'this is some text',⎕UCS 13 10
      ob.Value,←'Current Time: ',##.##.Utils.GetTimeStamp
      ob.Key←'test_',(' '~⍨∊⍕⎕TS),'.txt'
-     ob.ACL←'public-read'
+⍝     ob.ACL←'public-read'  ⍝ <<<< will not work without bucket having public content enabled!!!
      ok←ob.Put
      url←'https://',b.Name,'.s3.amazonaws.com/',ob.Key,'#somepw'
      ⍝ will be error becaues private!

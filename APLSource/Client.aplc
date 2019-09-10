@@ -31,7 +31,7 @@
 
     :endproperty
 
-    :field private secretKey
+    :field private secretKey ←''
     :Property SecretKey
     :access public instance
 
@@ -56,7 +56,7 @@
         ∇
     :EndProperty
 
-    :field private accessKey
+    :field private accessKey ←''
     :Property AccessKey
     :access public instance
         ∇ r←get
@@ -219,7 +219,6 @@
 
     :endproperty
 
-
     ∇ Z←New(sn rg)
       :Access public shared
       ⍝ sn = Service Name
@@ -232,24 +231,12 @@
       :Access public
       :Implements constructor
       timeStamp←GetTimeStamp
-      SetDefaultKeys ##.##.AcreConfig.ProjectFolder
       rumba←#.CarlisleGroup.Rumba.Core
       uri←##.##.URI.New
       uri.HostService←sn
       uri.HostRegion←rg
       uri.HostPrefix←''
     ∇
-
-      SetDefaultKeys←{
-          p←⍵
-          0=⎕NEXISTS ⍵:_←0
-          fp←⍵,'defaultKeys.csv'
-          0=⎕NEXISTS fp:_←0
-          keys←0⊃⎕CSV fp'UTF-8'⍬ 1
-          0=≢keys:_←0
-          ⎕THIS.(accessKey secretKey)←keys[0;]
-      }
-
 
     ∇ Z←ConstructConicalRequest;cr;qp;q;ct;n;v
       :Access public instance
@@ -285,9 +272,7 @@
       ss,←Date,'/',URI.HostRegion,'/',URI.HostService,'/aws4_request',NewLine
       ss,←Hash_SHA256 ConstructConicalRequest
       Z←ss
-     
     ∇
-
 
     ∇ Z←ConstructSignatureKey;dateKey;dateRegionKey;dateRegionServiceKey;signingKey
       :Access public instance
@@ -355,6 +340,7 @@
      
       c←rumba.NewClient''
       c.ClientTimeout←60000
+      c.TLSFlag←0
       c.Host,←URI.Host
       c.Secure←URI.Scheme≡'https'
       c.Port←URI.Port

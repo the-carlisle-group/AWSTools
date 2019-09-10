@@ -1,6 +1,6 @@
  GetBucketCollection←{
 
-     c←##.##.Client.New's3'##.defaultRegion
+     c←⍵
      s←##.##.S3.Service.New c
      b←s.GetBuckets
      0

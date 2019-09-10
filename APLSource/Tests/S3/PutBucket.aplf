@@ -1,9 +1,9 @@
  PutBucket←{
-     c←##.##.Client.New's3'##.defaultRegion
-     b←##.##.S3.Bucket.New c'badname'
+     c←⍵
+     b←##.##.S3.Bucket.New c('badname',⍕⌊10000000×?0)
      e←b.Exists
      e≠0:1
-     _←b.Create
+     _←b.Create  ⍝ must have access to create bucket in the account
      e←b.Exists
      e≠1:1
      _←b.Delete

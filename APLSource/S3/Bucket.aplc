@@ -77,13 +77,16 @@
       name←n
       client←c.Clone
       client.URI.HostPrefix←n
-      client.URI.HostRegion←Region
+      ⍝⍝      client.URI.HostRegion←''⍝Region
+      ⍝⍝      Region reguired to be set before calling any requst
     ∇
 
 
     ∇ Z←GetObjects(startAfterId maxKeys prefix);res;xml;bc;b;tb;params;pi
       :Access public instance
-     
+      ⍝ startAfterId    : Token to list maxKeys count from when iterating a large list.  AWS ContinuationToken value
+      ⍝ maxKeys         : Max object count.  1000 is max 
+      ⍝ prefix          : only object where the key start with this value.
       Z←⍬
      
       isTruncated←0
@@ -202,7 +205,7 @@
     :endproperty
 
     ∇ Z←getBucketRegion;res;xml;v;c2
-     
+      ;msg
       c2←client.Clone
       c2.URI.QueryParams←,⊂'location' ''
       res←c2.SendRequest 0
@@ -222,7 +225,8 @@
               Z←client.URI.HostRegion
               :Return
           :ElseIf res.StatusCode=403
-              ⎕SIGNAL⊂('EN'res.StatusCode)('EM'(2⊃xml[1;]))('Message' 'Does the bucket exist or belong to someone else?')
+              msg←'Does bucket "',name,'" exist or belong to someone else?'
+              ⎕SIGNAL⊂('EN'res.StatusCode)('EM'(2⊃xml[1;]))('Message'msg)
           :Else
               SignalError res
           :EndIf

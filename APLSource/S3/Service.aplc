@@ -20,9 +20,11 @@
       client←_client.Clone
     ∇
 
-    ∇ Z←GetBuckets;res;xml;bc;b;tb;bn;cd
-      :Access public instance
-      res←client.SendRequest 1
+    ∇ Z←GetBuckets;res;xml;bc;b;tb;bn;cd;c
+      :Access public instance    
+      c←client.Clone
+      res←c.SendRequest 1
+
       CheckContentTypeXML res
      
       xml←⎕XML res.Content

@@ -1,4 +1,12 @@
- {Z}←Init;_
- #.DCL.Crypt.Init #.DCL.AcreConfig.ProjectFolder,'Assets/Runtime/'
- _←#.CarlisleGroup.Rumba.Core.InitConga''
- Z←0
+ Init←{
+     ⍝ Goal is remove DCL requirement either with Conga or standalone hashing algorithm
+     pf←{
+         'CLEAR WS'≡⍵:AcreConfig.ProjectFolder,'../'
+         ('\\'⎕R'/')0⊃⎕NPARTS ⍵
+     }⎕WSID
+     #.DCL.AcreConfig.ProjectFolder←pf,'DyalogDCL/'
+     ##.Rumba.AcreConfig.ProjectFolder←pf,'Rumba/'
+     _←#.DCL.Crypt.Init #.DCL.AcreConfig.ProjectFolder,'Assets/Runtime/'
+     _←#.CarlisleGroup.Rumba.Core.InitConga''
+     1:×_←0
+ }

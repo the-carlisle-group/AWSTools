@@ -1,0 +1,19 @@
+ Z←GetAWSKeys;ak;sk;mt;tk
+ Z←⎕NS''
+
+ Z.Token←''  ⍝ default to none
+ Z.AccessKey←''
+ Z.SecretKey←''
+
+ :Trap 0
+     mt←#.CarlisleGroup.AWSTools.EC2.MetaData.IAM
+     Z.(AccessKey SecretKey Token)←mt.securitycredentials.role.(AccessKeyId SecretAccessKey Token)
+     :Return
+ :EndTrap
+
+ Z.AccessKey←GetEnv'AWS_AccessKey'
+ Z.SecretKey←GetEnv'AWS_SecretKey'
+ Z.Token←GetEnv'AWS_Token'
+ →(∧/0≠≢¨ak sk)/0
+
+ 'Keys not available.'⎕SIGNAL 11

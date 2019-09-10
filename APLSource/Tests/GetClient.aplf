@@ -1,1 +1,7 @@
- GetClient
+ getClient←{
+     c←##.Client.New ⍵
+     c.AccessKey←2 ⎕NQ'.' 'GetEnvironment' 'AWS_AccessKey'
+     c.SecretKey←2 ⎕NQ'.' 'GetEnvironment' 'AWS_SecretKey'
+     c.Token←2 ⎕NQ'.' 'GetEnvironment' 'AWS_Token'
+     c
+ }

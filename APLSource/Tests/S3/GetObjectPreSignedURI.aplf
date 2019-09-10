@@ -1,7 +1,7 @@
  GetObjectPreSignedURI←{
-     c←##.##.Client.New's3'##.defaultRegion
+     c←⍵
      bn←##.##.Utils.GetTimeStamp
-     b←##.##.S3.Bucket.New c defaultBucket
+     b←##.##.S3.Bucket.New c ##._defaultBucket
      ob←##.##.S3.Object.New b
      ob.ContentType←'text/plain'
      ob.Value←'this is some text',⎕UCS 13 10
