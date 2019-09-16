@@ -1,7 +1,5 @@
  DeleteBucketIncompleteMultiPart←{
-     c←⍵
-     s←##.##.S3.Service.New c
-     b←0⊃s.GetBuckets
+     b←##._defaultBucketRef
      obs←b.GetIncompleteMultiPart
      0=≢obs:0
      ok←b.DeleteIncompleteObject¨obs

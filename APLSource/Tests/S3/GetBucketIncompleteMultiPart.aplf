@@ -1,8 +1,5 @@
  GetBucketIncompleteMultiPart←{
-     c←⍵
-     s←##.##.S3.Service.New c
-     b←0⊃s.GetBuckets
+     b←##._defaultBucketRef
      obs←b.GetIncompleteMultiPart
-
      0
  }

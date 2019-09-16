@@ -1,4 +1,10 @@
- Hash_SHA256←{
-     h←#.DCL.Crypt.HASH_SHA256 #.DCL.Crypt.Hash ⍵
-     ∊ToHex 83 ⎕DR h
- }
+ r←Hash_SHA256 data;ctx;Init;Update;digest;Digest
+ 'Init'⎕NA' conga32ssl64|nettle_sha256_init >I1[112] '
+ 'Update'⎕NA'conga32ssl64|nettle_sha256_update =I1[112] U8 <T1[]'
+ 'Digest'⎕NA'conga32ssl64|nettle_sha256_digest =I1[112] U8 >I1[32]'
+
+ ctx←Init 112
+ ctx←Update ctx(⍴data)data
+ ctx digest←Digest ctx 32 32
+
+ r←∊ToHex digest

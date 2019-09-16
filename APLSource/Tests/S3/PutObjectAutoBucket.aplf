@@ -1,9 +1,6 @@
  PutObjectAutoBucket←{
-     c←⍵
-     s←##.##.S3.Service.New c
-     b←0⊃s.GetBuckets
+     b←##._defaultBucketRef
      ob←##.##.S3.Object.New b
-⍝     ob.ACL←'public-read'
      ob.ContentType←'text/plain'
      ob.Value←'this is some text',⎕UCS 13 10
      ob.Value,←'Current Time: ',##.##.Utils.GetTimeStamp
@@ -12,7 +9,6 @@
     ⍝ _←⎕SE.UCMD'open ','https://',b.Name,'.s3.amazonaws.com/',ob.Key
 
      ob←##.##.S3.Object.New b
-⍝     ob.ACL←'public-read'
      ob.ContentType←'application/json'
      ob.Value←⎕JSON ⎕DMX
      ob.Key←'dmx_',(' '~⍨∊⍕⎕TS),'.json'

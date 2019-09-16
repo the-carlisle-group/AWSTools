@@ -1,4 +1,12 @@
- HMAC_SHA256←{
-     h←#.DCL.Crypt.HMAC_SHA256 ⍺ #.DCL.Crypt.Hash ⍵
-     83 ⎕DR h
- }
+ r←key HMAC_SHA256 data;Init;Update;digest;ctx;Digest
+ ⍝ ctx is 3×112
+ 'Init'⎕NA' conga32ssl64|nettle_hmac_sha256_set_key >I1[336] U8 <T1[]'
+ 'Update'⎕NA'conga32ssl64|nettle_hmac_sha256_update =I1[336] U8 <T1[]'
+ 'Digest'⎕NA'conga32ssl64|nettle_hmac_sha256_digest =I1[336] U8 >I1[32]'
+
+ ctx←Init(336)(≢key)key
+ ctx←Update ctx(⍴data)data
+ ctx digest←Digest ctx 32 32
+
+ r←digest
+  ⍝   83 ⎕DR h

@@ -77,7 +77,7 @@
       name←n
       client←c.Clone
       client.URI.HostPrefix←n
-      ⍝⍝      client.URI.HostRegion←''⍝Region
+      client.URI.HostRegion←Region
       ⍝⍝      Region reguired to be set before calling any requst
     ∇
 
@@ -85,7 +85,7 @@
     ∇ Z←GetObjects(startAfterId maxKeys prefix);res;xml;bc;b;tb;params;pi
       :Access public instance
       ⍝ startAfterId    : Token to list maxKeys count from when iterating a large list.  AWS ContinuationToken value
-      ⍝ maxKeys         : Max object count.  1000 is max 
+      ⍝ maxKeys         : Max object count.  1000 is max
       ⍝ prefix          : only object where the key start with this value.
       Z←⍬
      

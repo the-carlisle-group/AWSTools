@@ -1,8 +1,5 @@
  DeleteAllObjects←{
-     c←⍵
-     s←##.##.S3.Service.New c
-     b←s.GetBuckets
-     b←0⊃b
+     b←##._defaultBucketRef
 
      uriz←b{
          ob←##.##.S3.Object.New ⍺

@@ -235,7 +235,41 @@
       uri←##.##.URI.New
       uri.HostService←sn
       uri.HostRegion←rg
-      uri.HostPrefix←''
+      uri.HostPrefix←''  
+
+      :Trap 11
+          (accessKey secretKey token)←GetAWSCredentials''
+      :EndTrap
+    ∇
+
+    ∇ Z←GetAWSCredentials dummy;ak;sk;mt;tk
+      :Access public shared
+     
+      ak sk tk←'' '' ''
+     
+      :Trap 0
+          mt←##.##.EC2.MetaData.IAM
+          ak sk tk←mt.securitycredentials.role.(AccessKeyId SecretAccessKey Token)
+      :EndTrap
+     
+      :If ∧/0≠≢¨ak sk tk
+     ⍝ keys set via EC2
+          Z←ak sk tk
+          :Return
+      :EndIf
+     
+      ak←GetEnv'AWS_ACCESS_KEY_ID'
+      sk←GetEnv'AWS_SECRET_ACCESS_KEY'
+      tk←GetEnv'AWS_SESSION_TOKEN'
+     
+      :If ∧/0≠≢¨ak sk
+     ⍝ keys set via cmd
+          Z←ak sk tk
+          :Return
+      :EndIf
+     
+      'Keys not available.'⎕SIGNAL 11
+     
     ∇
 
     ∇ Z←ConstructConicalRequest;cr;qp;q;ct;n;v

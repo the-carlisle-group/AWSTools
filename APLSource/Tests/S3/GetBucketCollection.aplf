@@ -1,5 +1,4 @@
  GetBucketCollection←{
-
      c←⍵
      s←##.##.S3.Service.New c
      b←s.GetBuckets

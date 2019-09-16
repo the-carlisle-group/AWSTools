@@ -1,6 +1,6 @@
  PutObjectInFolders←{
      c←⍵
-     b←##.##.S3.Bucket.New c ##._defaultBucket
+     b←##._defaultBucketRef
 
      ob←##.##.S3.Object.New b
 ⍝     ob.ACL←'public-read'
