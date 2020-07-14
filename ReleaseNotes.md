@@ -1,4 +1,6 @@
-# AWSTools Release 0.0.3                    
+# AWSTools Release 0.0.4                    
+
+# AWSTools Release 0.0.3 2020-07-14 10:00:01
 1. Refactor Dyalog DCL dependency
 2. Initial alpha release
 3. Update Bucket.aplc
