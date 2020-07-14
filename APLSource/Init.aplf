@@ -6,5 +6,5 @@
      }⎕WSID
      ##.Rumba.AcreConfig.ProjectFolder←pf,'Rumba/'
      _←#.CarlisleGroup.Rumba.Core.InitConga''
-     1:×_←0
+     1:_←0
  }
