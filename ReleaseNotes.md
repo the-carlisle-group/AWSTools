@@ -1,4 +1,7 @@
-# AWSTools Release 0.0.4                    
+# AWSTools Release 0.0.5                    
+1. Updated for Rumba 0.1.12
+
+# AWSTools Release 0.0.4 2020-07-14 10:03:47
 
 # AWSTools Release 0.0.3 2020-07-14 10:00:01
 1. Refactor Dyalog DCL dependency
