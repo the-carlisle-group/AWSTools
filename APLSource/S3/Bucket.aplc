@@ -21,7 +21,6 @@
         ∇
     :Endproperty
 
-
     :property IsTruncated
     :access public instance
         ∇ r←get
@@ -204,9 +203,10 @@
         ∇
     :endproperty
 
-    ∇ Z←getBucketRegion;res;xml;v;c2
-      ;msg
+    ∇ Z←getBucketRegion;res;xml;v;c2;msg
       c2←client.Clone
+      c2.URI.Path,←c2.URI.HostPrefix,'/'
+      c2.URI.HostPrefix←''   ⍝ SSL wont work if bucket has period, must use alternate path method
       c2.URI.QueryParams←,⊂'location' ''
       res←c2.SendRequest 0
      

@@ -96,10 +96,10 @@
     :access public instance
         ∇ r←get
           r←''
-          :If 0≠≢QueryParams
-              r,←'?',¯1↓∊({(UriEncode 0⊃⍵),'=',UriEncode 1⊃⍵}¨QueryParams),¨'&'
-          :EndIf
-         
+          :If 0≠≢QueryParams                                         
+              r,←'?'
+              r,←¯1↓∊({(UriEncode 0⊃⍵),( (0≠≢1⊃⍵)/'=',UriEncode 1⊃⍵ )}¨QueryParams),¨'&'
+          :EndIf         
         ∇
     :endproperty
 

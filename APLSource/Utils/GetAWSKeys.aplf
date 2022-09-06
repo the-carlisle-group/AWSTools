@@ -6,7 +6,7 @@
  Z.SecretKey←''
 
  :Trap 0
-     mt←#.CarlisleGroup.AWSTools.EC2.MetaData.IAM
+     mt←#.AWSTools.EC2.MetaData.IAM
      Z.(AccessKey SecretKey Token)←mt.securitycredentials.role.(AccessKeyId SecretAccessKey Token)
      :Return
  :EndTrap

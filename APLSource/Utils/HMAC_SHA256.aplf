@@ -9,4 +9,3 @@
  ctx digest←Digest ctx 32 32
 
  r←digest
-  ⍝   83 ⎕DR h

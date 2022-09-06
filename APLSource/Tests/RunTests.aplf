@@ -1,9 +1,11 @@
  RunTests←{
-⍝     _←⎕SE.acre.OpenProject ##.AcreConfig.ProjectFolder,'../DyalogDCL'
      _←##.Init''
      r←1↓refs ⎕THIS
-     ⎕THIS._defaultBucket←'d19app2'
-     client←##.Client.New's3' 'us-east-2'
+     ⎕THIS._defaultBucket←'awstools-test'
+     ⍝ Make sure to set correct geogrpahic endpoint.
+     ⍝ Getting details on a bucket created in us-east-2 will fail
+     ⍝ when client is set to us-east-1
+     client←##.Client.New's3' 'us-east-1'
      _defaultBucketRef←getBucket client
 
      out←client{
@@ -15,6 +17,7 @@
          ⎕←err/list
          ⎕←(⊂(⍕⍵),'.'),¨(err/list)
          err
-     }¨r
+⍝     }¨r
+     }S3
      1:_←out
  }

@@ -23,11 +23,9 @@
           :EndIf
         ∇
 
-
         ∇ set v
           requiredHeaders←v.NewValue
         ∇
-
 
     :endproperty
 
@@ -157,7 +155,6 @@
 
     :endproperty
 
-
     :property HeadersConical
     :access public instance
         ∇ r←get;hh;h;th;hi
@@ -187,7 +184,7 @@
          
           :EndFor
          
-          hh←hh[⍋(819⌶)¨RequiredHeaders]        ⍝ order alpha
+          hh←hh[⍋⎕C¨RequiredHeaders]        ⍝ order alpha
           r←∊hh,¨NewLine
         ∇
 
@@ -225,54 +222,63 @@
       ⍝ rg = Region
       ⍝ Z  = Client Instance
       Z←⎕NEW ⎕THIS(sn rg)
+⍝      Z.⎕DF 'Client; Service Name=',sn,'; Region=',rg
     ∇
 
     ∇ const0(sn rg)
       :Access public
       :Implements constructor
       timeStamp←GetTimeStamp
-      rumba←#.CarlisleGroup.Rumba.Core
+      rumba←#.Rumba.Core
       uri←##.##.URI.New
       uri.HostService←sn
       uri.HostRegion←rg
-      uri.HostPrefix←''  
-
+      uri.HostPrefix←''
+     
       :Trap 11
           (accessKey secretKey token)←GetAWSCredentials''
       :EndTrap
     ∇
 
-    ∇ Z←GetAWSCredentials dummy;ak;sk;mt;tk
+    ∇ Z←GetAWSCredentials dummy;ak;sk;mt;tk;credPath
       :Access public shared
+     
+      Z←0
      
       ak sk tk←'' '' ''
      
-      :Trap 0
-          mt←##.##.EC2.MetaData.IAM
-          ak sk tk←mt.securitycredentials.role.(AccessKeyId SecretAccessKey Token)
-      :EndTrap
+⍝      :Trap 0
+⍝          mt←#.AWSTools.EC2.MetaData.IAM
+⍝          ak sk tk←mt.securitycredentials.role.(AccessKeyId SecretAccessKey Token)
+⍝      :EndTrap
+⍝
+⍝      :If ∧/0≠≢¨ak sk tk
+⍝          ⍝ keys set via EC2
+⍝          Z←ak sk tk
+⍝          :Return
+⍝      :EndIf
      
-      :If ∧/0≠≢¨ak sk tk
-     ⍝ keys set via EC2
-          Z←ak sk tk
-          :Return
+      credPath←'c:\github\AWSKeys.json'
+      :If ⎕NEXISTS credPath
+          sk ak←(⎕JSON 0⊃⎕NGET credPath).(SecretKey AccessKey)
+          tk←''
+      :Else
+          ak←Utils.GetEnv'AWS_ACCESS_KEY_ID'
+          sk←Utils.GetEnv'AWS_SECRET_ACCESS_KEY'
+          tk←Utils.GetEnv'AWS_SESSION_TOKEN'
       :EndIf
      
-      ak←GetEnv'AWS_ACCESS_KEY_ID'
-      sk←GetEnv'AWS_SECRET_ACCESS_KEY'
-      tk←GetEnv'AWS_SESSION_TOKEN'
-     
       :If ∧/0≠≢¨ak sk
-     ⍝ keys set via cmd
+          ⍝ keys set via cmd
           Z←ak sk tk
           :Return
       :EndIf
      
       'Keys not available.'⎕SIGNAL 11
-     
+          
     ∇
 
-    ∇ Z←ConstructConicalRequest;cr;qp;q;ct;n;v
+    ∇ Z←ConstructConicalRequest;cr;qp;q;ct;n;v;h
       :Access public instance
      
       cr←HTTPMethod,NewLine
@@ -281,7 +287,9 @@
       :If 0≠≢URI.QueryParams
           qp←⍬
           :For (n v) :In URI.QueryParams
-              qp,←⊂(UriEncode n),'=',(UriEncode v)
+              h←UriEncode n
+              h,←'=',UriEncode v
+              qp,←⊂h
           :EndFor
           qp←qp[⍋qp]  ⍝ must sort alpa post encode
           cr,←¯1↓∊qp,¨'&'
@@ -299,11 +307,12 @@
       Z←cr
     ∇
 
-    ∇ Z←ConstructStringToSign;ss
+    ∇ Z←ConstructStringToSign;ss;hr
       :Access public instance
+      hr←'/',URI.HostRegion
       ss←'AWS4-HMAC-SHA256',NewLine
       ss,←TimeStamp,NewLine
-      ss,←Date,'/',URI.HostRegion,'/',URI.HostService,'/aws4_request',NewLine
+      ss,←Date,hr,'/',URI.HostService,'/aws4_request',NewLine
       ss,←Hash_SHA256 ConstructConicalRequest
       Z←ss
     ∇
@@ -370,7 +379,7 @@
       :If 0≠≢Headers
           h,←Headers
       :EndIf
-      h←h[⍋(819⌶)¨↑¨h]
+      h←h[⍋⎕C¨↑¨h]
      
       c←rumba.NewClient''
       c.ClientTimeout←60000
@@ -381,7 +390,7 @@
       r←rumba.NewRequest''
      
       r.Method←HTTPMethod
-      r.URI←URI.Path,URI.Query
+      r.RequestTarget←URI.Path,URI.Query
       r.Content←Body
       r.Headers←h
       res←c rumba.SendAndReceive r

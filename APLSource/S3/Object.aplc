@@ -305,9 +305,9 @@
 
       processHeaders←{
           h←⊃⍵
-          lastModified∘←⍵ #.CarlisleGroup.Rumba.Core.GetHeaderValue'last-modified'
-          eTag∘←⍵ #.CarlisleGroup.Rumba.Core.GetHeaderValue'etag'
-          Version∘←⍵ #.CarlisleGroup.Rumba.Core.GetHeaderValue'x-amz-version-id'
+          lastModified∘←⍵ #.Rumba.Core.GetHeaderValue'last-modified'
+          eTag∘←⍵ #.Rumba.Core.GetHeaderValue'etag'
+          Version∘←⍵ #.Rumba.Core.GetHeaderValue'x-amz-version-id'
      
           metaIndex←⍸∨/('x-amz-meta-')⍷⊃0⊃¨⍵.Headers
           0=≢metaIndex:_←0

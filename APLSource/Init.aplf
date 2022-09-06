@@ -5,6 +5,6 @@
          ('\\'⎕R'/')0⊃⎕NPARTS ⍵
      }⎕WSID
      ##.Rumba.AcreConfig.ProjectFolder←pf,'Rumba/'
-     _←#.CarlisleGroup.Rumba.Core.InitConga''
+     _←#.Rumba.Core.InitConga''
      1:_←0
  }
