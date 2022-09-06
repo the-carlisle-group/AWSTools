@@ -1,4 +1,7 @@
-# AWSTools Release 0.0.5                    
+# AWSTools Release 0.0.6                    
+1. Init get project folder from dado application build
+
+# AWSTools Release 0.0.5 2022-09-06 00:27:17
 1. Updated for Rumba 0.1.12
 
 # AWSTools Release 0.0.4 2020-07-14 10:03:47
