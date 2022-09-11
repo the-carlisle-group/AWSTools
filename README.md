@@ -1,7 +1,7 @@
 # AWSTools
 Dyalog APL Amazon Tools
 
-Utilities for working with AWS without external environment dependencies.  
+Utilities for working with AWS S3 without external environment dependencies.  
 
 EXPERIMENTAL and subject to a complete REWRITE at any time!!
 
