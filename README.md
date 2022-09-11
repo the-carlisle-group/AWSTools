@@ -13,4 +13,8 @@ To run tests:
 
 - #.AWSTools.Tests.RunTests 0
 
-RunTests generates random buckets starting with awstools-test-*. Successful run will delete the test bucket. Users should manually delete any buckets that were orphaned from failed tests. S3 buckets need to be unique across AWS. Stale buckets will take resources away from other users.
+RunTests generates random buckets starting with awstools)-test-*. Successful run will delete the test bucket. Users should manually delete any buckets that were orphaned from failed tests. S3 buckets need to be unique across AWS. Stale buckets will take resources away from other users.
+
+### Loading AWSTools
+
+Latest code must be loaded with with [Dado](https://github.com/the-carlisle-group/Dado) for Dyalog APL. Packages can downloaded through the [Release](https://github.com/the-carlisle-group/AWSTools/releases/) section of this project.
