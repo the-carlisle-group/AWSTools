@@ -3,6 +3,7 @@
     :include Utils
 
     :field private requiredHeaders←'Host' 'x-amz-content-sha256' 'x-amz-date'
+
     :property RequiredHeaders
     :access public instance
 
@@ -222,7 +223,6 @@
       ⍝ rg = Region
       ⍝ Z  = Client Instance
       Z←⎕NEW ⎕THIS(sn rg)
-⍝      Z.⎕DF 'Client; Service Name=',sn,'; Region=',rg
     ∇
 
     ∇ const0(sn rg)
@@ -234,31 +234,14 @@
       uri.HostService←sn
       uri.HostRegion←rg
       uri.HostPrefix←''
-     
-      :Trap 11
-          (accessKey secretKey token)←GetAWSCredentials''
-      :EndTrap
     ∇
 
-    ∇ Z←GetAWSCredentials dummy;ak;sk;mt;tk;credPath
+    ∇ Z←GetAWSCredentials credPath;ak;sk;mt;tk
       :Access public shared
      
       Z←0
-     
       ak sk tk←'' '' ''
      
-⍝      :Trap 0
-⍝          mt←#.AWSTools.EC2.MetaData.IAM
-⍝          ak sk tk←mt.securitycredentials.role.(AccessKeyId SecretAccessKey Token)
-⍝      :EndTrap
-⍝
-⍝      :If ∧/0≠≢¨ak sk tk
-⍝          ⍝ keys set via EC2
-⍝          Z←ak sk tk
-⍝          :Return
-⍝      :EndIf
-     
-      credPath←'c:\github\AWSKeys.json'
       :If ⎕NEXISTS credPath
           sk ak←(⎕JSON 0⊃⎕NGET credPath).(SecretKey AccessKey)
           tk←''
@@ -275,7 +258,6 @@
       :EndIf
      
       'Keys not available.'⎕SIGNAL 11
-          
     ∇
 
     ∇ Z←ConstructConicalRequest;cr;qp;q;ct;n;v;h

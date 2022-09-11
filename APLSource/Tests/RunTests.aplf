@@ -1,12 +1,37 @@
  RunTests←{
      _←##.Init''
      r←1↓refs ⎕THIS
-     ⎕THIS._defaultBucket←'awstools-test'
+
+     ⍝ Generate random default bucket. Assume is does not exist.
+     ⍝ If buckets exists under a different user or account, AWS will give an error.
+     ⍝ See:
+     ⍝ https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-s3-bucket-naming-requirements.html
+     ⎕THIS._defaultBucket←'awstools-test-',⍕⌈1000000×?0
+
      ⍝ Make sure to set correct geogrpahic endpoint.
      ⍝ Getting details on a bucket created in us-east-2 will fail
      ⍝ when client is set to us-east-1
-     client←##.Client.New's3' 'us-east-1'
-     _defaultBucketRef←getBucket client
+     client←⎕NEW ##.Client('s3' 'us-east-1')
+
+     keysPath←##.AcreConfig.ProjectsFolder,'AWSKeys.json'
+     ⍝ Keys can be set directly via known source
+     client.(AccessKey SecretKey)←(⎕JSON 0⊃⎕NGET keysPath).(AccessKey SecretKey)
+
+     ⍝ or use GetCredentials in a known AWS environmnet
+     client.(AccessKey SecretKey Token)←##.Client.GetAWSCredentials keysPath
+
+     ⍝ Get ref to defualt bucket objects
+     ⍝ 1. make sure bucket does not already in this account
+     s←##.S3.Service.New client
+
+     ⍝ Get list of available buckets for "these" credentials
+     ⍝ bl←s.GetBuckets  ⍝ // slow becaues its querying region of all accessible buckets
+     ⍝ (⊂_defaultBucket)∊bl.Name:'Current bucket name exists in this account.'⎕SIGNAL 6
+
+     ⍝ Create bucket..  watch for error if someone else alrady has this bucket!
+     _defaultBucketRef←##.S3.Bucket.New(client _defaultBucket)
+     _defaultBucketRef.Exists:'Current bucket name exists in this account.'⎕SIGNAL 6
+     _←_defaultBucketRef.Create
 
      out←client{
          list←⍵.⎕NL ¯3
@@ -17,7 +42,13 @@
          ⎕←err/list
          ⎕←(⊂(⍕⍵),'.'),¨(err/list)
          err
-⍝     }¨r
      }S3
+
+     ⍝ Cleanup! Useless buckets should not be left taking up AWS space.
+     ⍝ Delete objects first
+     obs←_defaultBucketRef.GetAllObjects
+     _←obs.Delete
+     ⍝ Delete bucket
+     _←_defaultBucketRef.Delete
      1:_←out
  }
