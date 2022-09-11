@@ -9,7 +9,7 @@ Utilities for working with AWS S3 without external environment dependencies.
 
 To run tests:
 
-- Get AWS API keys with full S3 access. **An IAM role with limited access to S3 is highly suggested.**
+- Get AWS API keys with full S3 access. **An IAM role with S# access only is highly suggested.**
 
 - #.AWSTools.Tests.RunTests 0
 
